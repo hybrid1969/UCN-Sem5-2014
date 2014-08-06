@@ -1,0 +1,47 @@
+\documentclass[a4paper,12pt]{report}
+% Packages
+\input{Config/Packages}
+% Macros/Commands
+\input{Config/Macros}
+% Paper Style
+\input{Config/Styles}
+
+% Document start
+
+\title{Semester 4: In Real Life Virtual Reality Massive Multiplayer Online}
+\author{Jackie Engberg Christensen}
+\date{\today}
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+%\doublespacing
+\centering
+{\LARGE Semester 4: In Real Life Virtual Reality Massive Multiplayer Online}
+\begin{figure}[H]
+\centering
+%\includegraphics[width=0.75\linewidth]{img/Front}
+\end{figure}
+
+{\large Jackie Engberg Christensen\linebreak
+\today}
+\end{titlepage}
+
+%\input{Chapters/Titelblad}
+\tableofcontents
+\input{Chapters/Overview}
+\input{Chapters/ProblemAnalyse}
+\input{Chapters/ProblemStatement}
+\input{Chapters/ExistingSystems}
+\input{Chapters/HardWares}
+\input{Chapters/SystemDesign}
+\input{Chapters/Conclusion}
+\input{Chapters/FutureWork}
+\input{Chapters/ProcessAnalysis}
+
+\newpage
+\bibliographystyle{unsrt}
+\bibliography{Chapters/Bibliography}
+\input{Chapters/Apendix}
+
+\end{document}

@@ -1,0 +1,21 @@
+% Formats
+\titleformat{\chapter}[block]{\Huge\scshape\centering\bf}{\thechapter}{1em}{}
+\titleformat{\section}[block]{\Large\scshape\bf}{\thesection}{1em}{}
+\titleformat{\subsection}[block]{\large\scshape\bf}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}[block]{\normalsize\scshape\bf}{\thesubsubsection}{1em}{}
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{5}
+
+% Header and footer... plus some weird haxx...
+\pagestyle{fancy}
+\fancypagestyle{plain}{
+\fancyhead{} % get rid of headers
+\fancyhead[C]{Semester 4: In Real Life Virtual Reality Masive Multiplayer Online}
+\fancyfoot{}
+\fancyfoot[C]{\thepage}
+}
+\renewcommand{\chead}[1]{\markboth{#1}{}}
+\renewcommand{\chead}[1]{\markright{#1}}
+\fancyhf{}
+\lhead{\centering Semester 4: In Real Life Virtual Reality Masive Multiplayer Online}
+\lfoot{\centering \thepage}

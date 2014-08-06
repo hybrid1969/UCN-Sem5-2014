@@ -1,0 +1,71 @@
+\chapter{System Design \& Implementation}
+
+After having looked at the possibilities of using the phones hardware and seen how they work, we will now need to think of ways to design the game, and how the game should work, as well as tasks for the user to complete.
+
+\section{The Game Idea}
+
+Our idea suggest a capture the flag (CTF) game where you have 2 or more teams that have to protect their flag. This game will be made as a "private" game setup as you will need to have the game setup in a controlled environment, as the earth may be too big for 2 teams to fight over a flag. The idea could be expanded upon and have premade areas setup for CTF in an open world IRLVRMMO.
+
+\subsection{Game Setup}
+
+The game should be setup by each team choosing an area or place to be their base and have the flag placed. This will be controlled by the players and will need to be in a controlled environment as it is previously mentioned that premade areas for such game may not be an option.
+
+\subsection{Game Goal}
+
+The goal of the game is to capture x numbers of enemy flags and the first team to capture that amount of flags will be the winner of the game. Additionally, each team also have to protect their own flag and watch out for it, so it does not get stolen by another team.
+
+%\subsection{Game Mechanics}
+
+%The game will need several mechanics to work and give both teams a fair chance of completing the game's goal.
+
+%The flag of each team needs to be able to be picked up by an enemy player and returned to its base by friendly players if the enemy player dies or drops the flag. The flag also need to respawn at its base within a short time if an enemy player captures it.
+
+%The second piece is how players interact with each other. Players should have the ability to shoot at each other and die, in which the dead player then either needs to go be to his base to respawn, or just be dead for a short period of time.
+
+%As a one part strategy game it will also be important for players to have certain information visible on their map. It can be discussed what information that is important and therefore every game object will for now be vissible at all time.
+
+%\subsubsection*{Flag Capturing}
+
+%The flag will be captured when a player gets nearby an enemy flag. The player will then be the flag carrier and will need to make it back to his own base to capture the flag and score a point for the team, but only if that team is controlling their flag them self and it's in their base.
+
+
+
+%\subsubsection*{Flag Respawn}
+
+%When ever a flag is dropped a player from the team, the flag belongs to will need to pick it up by getting close to it. The flag should then either automatically be transported back to base or the player need to pick it up and bring it back to base. A flag picked up by an enemy player will act normal as if it was captured normally. When a flag is captured the flag will respawn back in it's relative base.
+
+%\subsubsection*{Player Interaction}
+
+%Player interact with each other by "shooting" eachother with their phone, and if a player is fatally hit he will die and be dead for awhile. The dead player will also drop any flag he was carrying with him.
+
+%\subsubsection*{Player Respawn}
+
+%Players will need to respawn after being shot to keep the game going and have players being able keep participating in the game instead of waiting until all flags have been captured. A player will respawn either after staying still for a while or by going back to their base. Both these are great alternatives for respawning instead of staying dead for rest of the game being.
+
+%\subsubsection*{Game Visibility}
+
+%Every friendly player should be visible at any time to each other as this gives a general idea over tactics and how to work together and which players to shoot at. All flags should also be visible at all time as hidden flags might consult in longer and hard game as no one other than the owners will know where the flag is.
+
+\section{Google Maps API}
+
+In the game, Google maps is a very essential part, as it will serve as the main game interface. With Google maps we are able to add markers onto the map\cite{GooglemapMarkers}, that can guide the player around and serves as a representation of the game world. The markers on the map will represent players, or props in the game that will only be visible on the phones UI.
+
+
+\section{Network Comunication}
+
+As the game will be an online game it will need to communicate with other players and both send and receive information about the current game stage. A server is needed to exchange the information between players and should also act as the man in the middle or a judge. 
+%Our server and client will communicate through sockets, as this is an easy and lightweight way to communicate, and is also used in some other online games to exchange data.
+
+As both the Server and the Client's language will be Java we will just serialize objects and send them, however if we wanted to be platform independent we could use JSon.
+
+JSon has a small amount of meta data versus its other alternative, XML\cite{XMLvsJSON} and thereby gives less data to send and receive, and thereby saves phone data.
+
+
+\section{Client-side Prediction}
+\label{cha:MMO}
+
+Multiplayer games generally employ client-side prediction, which is having a copy of the game's state at the client, that maintain user input before the server receives it. The request is then sent to the server, which also maintains a copy of the game state, and can send out updates to the clients, which typically happens after the request from a client's request have been processed.
+
+Client-side prediction is used to reduce latency and keep the game running smoothly, but it does introduce another problem which is desynchronization between the server and clients. Since what you may see in your game state may be different from the server's game state, the game will often correct itself after receiving an update from the server, but instantaneously corrections may lead to choppy movement. Smoothing is used to smooth the objects' movement, until they are corrected enough to be reliable\cite{Clientsideprediction}.
+
+We do not plan at the current state to implement Client-side prediction in our game since the movement of the players, will be minor and can be updated every second or less, or every time a player moves more than x meters and thereby still result in a somewhat smooth movement.
