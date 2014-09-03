@@ -19,7 +19,7 @@
 	<DebugType>full</DebugType>
 	<Optimize>false</Optimize>
 	<OutputPath>Temp\bin\Debug\</OutputPath>
-	<DefineConstants>DEBUG;TRACE;UNITY_4_6_0;UNITY_4_6;UNITY_STANDALONE_WIN;ENABLE_MICROPHONE;ENABLE_TEXTUREID_MAP;ENABLE_UNITYEVENTS;ENABLE_NEW_HIERARCHY ;ENABLE_AUDIO_FMOD;UNITY_STANDALONE;ENABLE_MONO;ENABLE_TERRAIN;ENABLE_SUBSTANCE;ENABLE_GENERICS;INCLUDE_WP8SUPPORT;ENABLE_MOVIES;ENABLE_WWW;ENABLE_IMAGEEFFECTS;ENABLE_4_6_FEATURES;ENABLE_WEBCAM;INCLUDE_METROSUPPORT;RENDER_SOFTWARE_CURSOR;ENABLE_NETWORK;ENABLE_PHYSICS;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_2D_PHYSICS;ENABLE_SHADOWS;ENABLE_AUDIO;ENABLE_NAVMESH_CARVING;ENABLE_DUCK_TYPING;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;ENABLE_PROFILER;UNITY_EDITOR;UNITY_EDITOR_WIN;UNITY_TEAM_LICENSE;UNITY_PRO_LICENSE</DefineConstants>
+	<DefineConstants>DEBUG;TRACE;UNITY_4_5_2;UNITY_4_5;UNITY_STANDALONE_WIN;ENABLE_MICROPHONE;ENABLE_TEXTUREID_MAP;ENABLE_UNITYEVENTS;ENABLE_NEW_HIERARCHY ;ENABLE_AUDIO_FMOD;UNITY_STANDALONE;ENABLE_MONO;ENABLE_TERRAIN;ENABLE_SUBSTANCE;ENABLE_GENERICS;INCLUDE_WP8SUPPORT;ENABLE_MOVIES;ENABLE_WWW;ENABLE_IMAGEEFFECTS;ENABLE_WEBCAM;INCLUDE_METROSUPPORT;RENDER_SOFTWARE_CURSOR;ENABLE_NETWORK;ENABLE_PHYSICS;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_2D_PHYSICS;ENABLE_SHADOWS;ENABLE_AUDIO;ENABLE_NAVMESH_CARVING;ENABLE_DUCK_TYPING;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;ENABLE_PROFILER;UNITY_EDITOR;UNITY_EDITOR_WIN;UNITY_TEAM_LICENSE;UNITY_PRO_LICENSE</DefineConstants>
 	<ErrorReport>prompt</ErrorReport>
 	<WarningLevel>4</WarningLevel>
 	<NoWarn>0169</NoWarn>
@@ -46,15 +46,13 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Biome.cs" />
      <Compile Include="Assets\ChunkLoader.cs" />
-     <Compile Include="Assets\Infinite Terrain\Scripts\FlyCamera.cs" />
-     <Compile Include="Assets\Infinite Terrain\Scripts\SimplexNoise.cs" />
-     <Compile Include="Assets\Infinite Terrain\Scripts\TerrainControls.cs" />
-     <Compile Include="Assets\Infinite Terrain\Scripts\TerrainGenerators.cs" />
+     <Compile Include="Assets\DataBaseHandler.cs" />
      <Compile Include="Assets\LevelGenerator\BiomeMap.cs" />
+     <Compile Include="Assets\LevelGenerator\Chunk.cs" />
      <Compile Include="Assets\LevelGenerator\HeightMap.cs" />
      <Compile Include="Assets\LevelGenerator\Perlin.cs" />
-     <Compile Include="Assets\LevelGenerator\SimpleTerrainGenerator.cs" />
      <Compile Include="Assets\LevelGenerator\SimplexNoice.cs" />
      <Compile Include="Assets\LevelGenerator\TerrainTools.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\Billow.cs" />
@@ -100,16 +98,16 @@
      <Compile Include="Assets\Resources\TerEdge\teMap.cs" />
      <Compile Include="Assets\Resources\TerEdge\teShaders.cs" />
      <Compile Include="Assets\Resources\TerEdge\teUI.cs" />
-     <None Include="Assets\TerrainStitcher\Changelog.txt" />
+     <Compile Include="Assets\SimplexNoise.cs" />
+     <None Include="Assets\Standard Assets\TerrainStitcher\Changelog.txt" />
      <None Include="Assets\Resources\LibNoise.Unity\COPYING.txt" />
-     <None Include="Assets\TerrainStitcher\Readme.txt" />
+     <None Include="Assets\Standard Assets\TerrainStitcher\Readme.txt" />
      <None Include="Assets\Resources\LibNoise.Unity\COPYING.LESSER.txt" />
-     <None Include="Assets\TerrainStitcher\License.txt" />
- <Reference Include="UnityEngine.UI">
- <HintPath>C:/Program Files (x86)/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/4.6.0/UnityEngine.UI.dll</HintPath>
- </Reference>
+     <None Include="Assets\Standard Assets\TerrainStitcher\License.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
+      <Project>{079EFB59-BBED-98B8-8FB4-E38EBB100EA9}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
     <ProjectReference Include="Assembly-UnityScript-firstpass.unityproj">
       <Project>{4245EBB4-0DAC-AB11-E8C7-3F2180576F1B}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
   </ItemGroup>

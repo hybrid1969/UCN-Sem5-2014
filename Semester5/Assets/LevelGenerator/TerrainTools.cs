@@ -2,270 +2,277 @@ using System;
 using UnityEngine;
 using System.Collections;
 
-    public static class TerrainTools
+public static class TerrainTools
+{
+    static double[] smoothModTable = null;
+    static double[] smoothDYTable = null;
+    static bool memoizationTablesFilled = false;
+
+    static Vector3 prevSize = new Vector3(0, 0, 0);
+    static int prevHeight = 0;
+    static int prevWidth = 0;
+    static int prevNumSamples = 0;
+
+    delegate float GetYMod(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY);
+
+    public static void StitchTerrains(Terrain terrain1, Terrain terrain2, int numSamples, int domTerrain)
     {
-        static float[] smoothModTable = null;
-        static float[] smoothDYTable = null;
-        static bool memoizationTablesFilled = false;
+        var dX = terrain2.transform.position.x - terrain1.transform.position.x;
+        var dZ = terrain2.transform.position.z - terrain1.transform.position.z;
 
-        static Vector3 prevSize = new Vector3(0, 0, 0);
-        static int prevHeight = 0;
-        static int prevWidth = 0;
-        static int prevNumSamples = 0;
+        var height = terrain1.terrainData.heightmapHeight;
+        var width = terrain1.terrainData.heightmapWidth;
 
-        delegate float GetYMod(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY);
-        public static IEnumerator StitchTerrains(Terrain terrain1, Terrain terrain2, int numSamples, int domTerrain, int stitchTimes)
+        if (height != terrain2.terrainData.heightmapHeight || width != terrain2.terrainData.heightmapWidth || terrain1.terrainData.size != terrain2.terrainData.size)
         {
+            return;
+        }
 
-            var dX = terrain2.transform.position.x - terrain1.transform.position.x;
-            var dZ = terrain2.transform.position.z - terrain1.transform.position.z;
+        if (height != prevHeight || width != prevWidth || terrain1.terrainData.size != prevSize || numSamples != prevNumSamples)
+        {
+            prevHeight = height;
+            prevWidth = width;
+            prevSize = terrain1.terrainData.size;
+            prevNumSamples = numSamples;
 
-            var height = terrain1.terrainData.heightmapHeight;
-            var width = terrain1.terrainData.heightmapWidth;
+            memoizationTablesFilled = false;
+            smoothModTable = new double[height];
+            smoothDYTable = new double[numSamples];
+        }
+        
+        GetYMod getYMod;
+        if (memoizationTablesFilled)
+        {
+            getYMod = getYModMemoized;
+        }
+        else
+        {
+            getYMod = getYModDynamic;
+        }
 
-            float[,] heights1 = terrain1.terrainData.GetHeights(0, 0, width, height);
-            float[,] heights2 = terrain2.terrainData.GetHeights(0, 0, width, height);
+        var heights1 = terrain1.terrainData.GetHeights(0, 0, width, height);
+        var heights2 = terrain2.terrainData.GetHeights(0, 0, width, height);
 
-            if (height != prevHeight || width != prevWidth || terrain1.terrainData.size != prevSize || numSamples != prevNumSamples)
+        if (Mathf.Abs(dX) > Mathf.Abs(dZ))
+        {
+            var xDir = terrain2.transform.position.x > terrain1.transform.position.x ? 1 : -1;
+
+            terrain2.transform.position = terrain1.transform.position;
+            terrain2.transform.position = new Vector3(terrain1.transform.position.x + terrain1.terrainData.size.x * xDir, terrain2.transform.position.y, terrain2.transform.position.z);
+
+            for (int z = 0; z < height; z++)
             {
-                prevHeight = height;
-                prevWidth = width;
-                prevSize = terrain1.terrainData.size;
-                prevNumSamples = numSamples;
-
-                memoizationTablesFilled = false;
-                smoothModTable = new float[height];
-                smoothDYTable = new float[numSamples];
-            }
-            GetYMod getYMod;
-            if (memoizationTablesFilled)
-                getYMod = getYModMemoized;
-            else
-                getYMod = getYModDynamic;
-
-            if (Mathf.Abs(dX) > Mathf.Abs(dZ))
-            {
-                int xDir = terrain2.transform.position.x > terrain1.transform.position.x ? 1 : -1;
-
-                // Align terrains
-                terrain2.transform.position = terrain1.transform.position;
-                terrain2.transform.position = new Vector3(terrain1.transform.position.x + terrain1.terrainData.size.x * xDir, terrain2.transform.position.y, terrain2.transform.position.z);
-
-                /* Stitch */
-                // Loop over each sample point on the Z axis
-                for (int z = 0; z < height; z++)
+                var dY = 0.0;
+                if (xDir == 1)
                 {
-                    // Get height difference between sample point on the two terrains ([0, 1.0f])
-                    float dY = 0.0f;
+                    dY = heights2[z, 0] - heights1[z, width - 1];
+                }
+                else
+                {
+                    dY = heights2[z, width - 1] - heights1[z, 0];
+                }
+
+                for (int i = 0; i < numSamples; i++)
+                {
                     if (xDir == 1)
-                        dY = heights2[z, 0] - heights1[z, width - 1];
-                    else
-                        dY = heights2[z, width - 1] - heights1[z, 0];
-
-                    // Move a configured number of samples towards the point in the middle of the height difference
-                    // the amount to move them is reduced the farther away they are from the edge
-                    for (int i = 0; i < numSamples; i++)
                     {
-                        if (xDir == 1)
-                        {
-                            heights1[z, width - 1 - i] = heights1[z, width - 1 - i] + getYMod(domTerrain, 1, dY, z, height, i, numSamples);
-                            heights2[z, i] = heights2[z, i] - getYMod(domTerrain, 2, dY, z, height, i, numSamples);
-                        }
-                        else
-                        {
-                            heights1[z, i] = heights1[z, i] + getYMod(domTerrain, 1, dY, z, height, i, numSamples);
-                            heights2[z, width - 1 - i] = heights2[z, width - 1 - i] - getYMod(domTerrain, 2, dY, z, height, i, numSamples);
-                        }
+                        heights1[z, width - 1 - i] = heights1[z, width - 1 - i] + getYMod.Invoke(domTerrain, 1, dY, z, height, i, numSamples);
+                        heights2[z, i] = heights2[z, i] - getYMod.Invoke(domTerrain, 2, dY, z, height, i, numSamples);
                     }
-                    if (z % 64 == 0)
+                    else
                     {
-                        //Debug.Log(z);
-                        yield return new WaitForEndOfFrame();
+                        heights1[z, i] = heights1[z, i] + getYMod.Invoke(domTerrain, 1, dY, z, height, i, numSamples);
+                        heights2[z, width - 1 - i] = heights2[z, width - 1 - i] - getYMod.Invoke(domTerrain, 2, dY, z, height, i, numSamples);
                     }
                 }
             }
-            // Stitch along X axis
-            else
+        }
+        else
+        {
+            var zDir = terrain2.transform.position.z > terrain1.transform.position.z ? 1 : -1;
+
+            terrain2.transform.position = terrain1.transform.position;
+            terrain2.transform.position = new Vector3(terrain2.transform.position.x, terrain2.transform.position.y, terrain1.transform.position.z + terrain1.terrainData.size.z * zDir);
+
+            for (int x = 0; x < height; x++)
             {
-                int zDir = terrain2.transform.position.z > terrain1.transform.position.z ? 1 : -1;
-
-                // Align terrains
-                terrain2.transform.position = terrain1.transform.position;
-                terrain2.transform.position = new Vector3(terrain2.transform.position.x, terrain2.transform.position.y, terrain1.transform.position.z + terrain1.terrainData.size.z * zDir);
-
-                /* Stitch */
-                // Loop over each sample point on the X axis
-                for (int x = 0; x < height; x++)
+                var dY = 0.0;
+                if (zDir == 1)
                 {
-                    // Get height difference between sample point on the two terrains ([0, 1.0f])
-                    float dY = 0.0f;
+                    dY = heights2[0, x] - heights1[width - 1, x];
+                }
+                else
+                {
+                    dY = heights2[width - 1, x] - heights1[0, x];
+                }
+                for (int i = 0; i < numSamples; i++)
+                {
                     if (zDir == 1)
-                        dY = heights2[0, x] - heights1[width - 1, x];
-                    else
-                        dY = heights2[width - 1, x] - heights1[0, x];
-
-                    // Move a configured number of samples towards the point in the middle of the height difference
-                    // the amount to move them is reduced the farther away they are from the edge
-                    for (int i = 0; i < numSamples; i++)
                     {
-                        if (zDir == 1)
-                        {
-                            heights1[width - 1 - i, x] = heights1[width - 1 - i, x] + getYMod(domTerrain, 1, dY, x, height, i, numSamples);
-                            heights2[i, x] = heights2[i, x] - getYMod(domTerrain, 2, dY, x, height, i, numSamples);
-                        }
-                        else
-                        {
-                            heights1[i, x] = heights1[i, x] + getYMod(domTerrain, 1, dY, x, height, i, numSamples);
-                            heights2[width - 1 - i, x] = heights2[width - 1 - i, x] - getYMod(domTerrain, 2, dY, x, height, i, numSamples);
-                        }
-                        if (x % 50 == 0 && i != 0)
-                        {
-                            //Debug.Log("TESTER");
-                            yield return new WaitForEndOfFrame();
-                        }
+                        heights1[width - 1 - i, x] = heights1[width - 1 - i, x] + getYMod.Invoke(domTerrain, 1, dY, x, height, i, numSamples);
+                        heights2[i, x] = heights2[i, x] - getYMod.Invoke(domTerrain, 2, dY, x, height, i, numSamples);
+                    }
+                    else
+                    {
+                        heights1[i, x] = heights1[i, x] + getYMod.Invoke(domTerrain, 1, dY, x, height, i, numSamples);
+                        heights2[width - 1 - i, x] = heights2[width - 1 - i, x] - getYMod.Invoke(domTerrain, 2, dY, x, height, i, numSamples);
                     }
                 }
-
-
-                //yield return new WaitForEndOfFrame();
             }
-
-            terrain1.terrainData.SetHeights(0, 0, heights1);
-            terrain2.terrainData.SetHeights(0, 0, heights2);
-            terrain1.Flush();
-            terrain2.Flush();
         }
 
-        static float getYModDynamic(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY)
+        memoizationTablesFilled = true;
+
+        terrain1.terrainData.SetHeights(0, 0, heights1);
+        terrain1.Flush();
+        terrain2.terrainData.SetHeights(0, 0, heights2);
+        terrain2.Flush();
+    }
+
+    static float getYModDynamic(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY)
+    {
+        double yMod = dY / 2.0f;
+
+        if (terrainToMod == 1)
         {
-            float yMod = (float)dY / 2.0f;
-
-            if (terrainToMod == 1)
+            if (domTerrain == 1)
             {
-                if (domTerrain == 1)
-                    yMod = (float)dY * smoothMod(curCellX, maxCellsX);
-                else if (domTerrain == 2)
-                    yMod = (float)dY * (1.0f - smoothMod(curCellX, maxCellsX));
+                yMod = dY * smoothMod(curCellX, maxCellsX);
             }
-            else if (terrainToMod == 2)
+            else if (domTerrain == 2)
             {
-                if (domTerrain == 1)
-                    yMod = (float)dY * (1.0f - smoothMod(curCellX, maxCellsX));
-                else if (domTerrain == 2)
-                    yMod = (float)dY * smoothMod(curCellX, maxCellsX);
+                yMod = dY * (1.0f - smoothMod(curCellX, maxCellsX));
             }
-            else
+        }
+        else if (terrainToMod == 2)
+        {
+            if (domTerrain == 1)
             {
-                Debug.LogError("terrainToMod must be either 1 or 2! (found: " + terrainToMod + ")");
+                yMod = dY * (1.0f - smoothMod(curCellX, maxCellsX));
             }
-
-            return (float)(yMod * smoothDY(curCellY, maxCellsY));
+            else if (domTerrain == 2)
+            {
+                yMod = dY * smoothMod(curCellX, maxCellsX);
+            }
+        }
+        else
+        {
+            Debug.LogError("terrainToMod must be either 1 or 2! (found: " + terrainToMod + ")");
         }
 
-        // Get the height (Y) difference that needs to be applied at this point to match the terrains' height
-        // X: along the edge
-        // Y: into the terrain
-        static float getYModMemoized(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY)
+        return (float)(yMod * smoothDY(curCellY, maxCellsY));
+    }
+
+    static float getYModMemoized(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY)
+    {
+        double yMod = (double)dY / 2.0f;
+
+        if (terrainToMod == 1)
         {
-            float yMod = (float)dY / 2.0f;
-
-            if (terrainToMod == 1)
+            if (domTerrain == 1)
             {
-                if (domTerrain == 1)
-                    yMod = (float)dY * smoothModTable[curCellX];
-                else if (domTerrain == 2)
-                    yMod = (float)dY * (1.0f - smoothModTable[curCellX]);
+                yMod = dY * smoothModTable[curCellX];
             }
-            else if (terrainToMod == 2)
+            else if (domTerrain == 2)
             {
-                if (domTerrain == 1)
-                    yMod = (float)dY * (1.0f - smoothModTable[curCellX]);
-                else if (domTerrain == 2)
-                    yMod = (float)dY * smoothModTable[curCellX];
+                yMod = dY * (1.0f - smoothModTable[curCellX]);
             }
-            else
+        }
+        else if (terrainToMod == 2)
+        {
+            if (domTerrain == 1)
             {
-                Debug.LogError("terrainToMod must be either 1 or 2! (found: " + terrainToMod + ")");
+                yMod = dY * (1.0f - smoothModTable[curCellX]);
             }
-
-            return (float)(yMod * smoothDYTable[curCellY]);
+            else if (domTerrain == 2)
+            {
+                yMod = dY * smoothModTable[curCellX];
+            }
+        }
+        else
+        {
+            Debug.LogError("terrainToMod must be either 1 or 2! (found: " + terrainToMod + ")");
         }
 
-        static float smoothDY(int current, float max)
+        return (float)(yMod * smoothDYTable[curCellY]);
+    }
+
+    static double smoothDY(int current, double max)
+    {
+        double x = 1.0f - (double)current / max - 1;
+
+        var result = (236706659320000.0 * Math.Pow(x, 6) + 99115929736349168000.0 * Math.Pow(x, 5) - 247790818523389713100.0 * Math.Pow(x, 4)
+            + 80036273392876468420.0 * Math.Pow(x, 3) + 127736693875550215551.0 * Math.Pow(x, 2) - 713647159857677493.0 * x) / 58384668816317760000.0;
+        smoothDYTable[current] = result;
+        return result;
+    }
+
+    static double smoothMod(int current, double max)
+    {
+        double x = (double)current / max - 1;
+
+        var result = 1.0E-4 * ((1 * (x - 0.0) * (x - 0.05) * (x - 0.1) * (x - 0.5) * (x - 0.9) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / -1.4317846804800003E-5) +
+            0.0050 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.1) * (x - 0.5) * (x - 0.9) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / 3.074152499999999E-5) +
+            0.04 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.5) * (x - 0.9) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / -9.804240000000002E-5) +
+            0.5 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.1) * (x - 0.9) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / 0.0019448099999999997) +
+            0.04 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.1) * (x - 0.5) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / -9.804239999999985E-5) +
+            0.0050 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.1) * (x - 0.5) * (x - 0.9) * (x - 0.99) * (x - 1.0)) / 3.0741525000000005E-5) +
+            1.0E-4 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.1) * (x - 0.5) * (x - 0.9) * (x - 0.95) * (x - 1.0)) / -1.4317846804800018E-5);
+        smoothModTable[current] = result;
+        return result;
+    }
+
+    //public static float[, ,] TerrainTexture(int sizeX, int sizeY, int texturecount, BiomeMap biomap)
+    //{
+    //    float[, ,] textures = new float[sizeX, sizeY, texturecount];
+    //    for (int x = 0; x < sizeX; x++)
+    //    {
+    //        for (int y = 0; y < sizeY; y++)
+    //        {
+    //            textures[x, y, Mathf.RoundToInt(biomap.Biomes[x,y])] = 1;
+    //        }
+    //    }
+    //    return textures;
+    //}
+
+    public static Chunk GetGenerator(this Terrain ter)
+    {
+        if (ter.GetComponent<Chunk>() != null)
+            return ter.GetComponent<Chunk>();
+        else
+            return ter.gameObject.AddComponent<Chunk>();
+
+    }
+
+    public static void Fix(this Terrain cur, Terrain left, Terrain top, Terrain right, Terrain bottom)
+    {
+        int resolution = cur.terrainData.heightmapResolution;
+        float[,] newHeights = new float[resolution, resolution];
+        float[,] rightHeights = new float[resolution, resolution], bottomHeights = new float[resolution, resolution];
+
+        if (right != null)
         {
-            float x = 1.0f - (float)((current) / (max - 1));
-
-            /*return 0.05f*((x*(x-0.3f)*(x-0.5f)*(x-0.7f)*(x-0.85f)*(x-1.0f)) / -0.0025770937499999995f) +
-                0.2f*((x*(x-0.15f)*(x-0.5f)*(x-0.7f)*(x-0.85f)*(x-1.0f)) / 0.0013859999999999999f) +
-                0.5f*((x*(x-0.15f)*(x-0.3f)*(x-0.7f)*(x-0.85f)*(x-1.0f)) / -0.0012249999999999995f) +
-                0.8f*((x*(x-0.15f)*(x-0.3f)*(x-0.5f)*(x-0.85f)*(x-1.0f)) / 0.0013859999999999999f) +
-                0.95f*((x*(x-0.15f)*(x-0.3f)*(x-0.5f)*(x-0.7f)*(x-1.0f)) / -0.0025770937500000004f) +
-                (x*(x-0.15f)*(x-0.3f)*(x-0.5f)*(x-0.7f)*(x-0.85f)) / 0.013387500000000004f;*/
-
-            /*Polynomial (Lagrange) interpolated from (x, y):
-            0 0
-            0.5f 0.5f
-            1 1
-            .30  .20
-            .70 .80
-            .15  .05
-            .85 .95
-            */
-            float result = (float)(236706659320000.0f * Math.Pow(x, 6) + 99115929736349168000.0f * Math.Pow(x, 5) - 247790818523389713100.0f * Math.Pow(x, 4)
-                + 80036273392876468420.0f * Math.Pow(x, 3) + 127736693875550215551.0f * Math.Pow(x, 2) - 713647159857677493.0f * x) / 58384668816317760000.0f;
-            smoothDYTable[current] = result;
-            return result;
+            rightHeights = right.terrainData.GetHeights(0, 0, resolution, resolution);
+        }
+        if (bottom != null)
+        {
+            bottomHeights = bottom.terrainData.GetHeights(0, 0, resolution, resolution);
         }
 
-        // When one terrain needs to stay the same height in the corners we want to gradually transition
-        // from not modifying a tile (at the corners) to modifying tiles for 50% (the other 50% is done
-        // by the other terrain to meet in the middle)
-        static float smoothMod(int current, float max)
+        if (right != null || bottom != null)
         {
-            float x = (float)((current) / (max - 1));
-            //return 0.5f * Mathf.Cos(-Mathf.PI * x + 0.5f * Mathf.PI);
 
-            /*Polynomial (Lagrange) interpolated from (x, y):
-            0.0f,0.0f
-            0.01f,1.0fE-4
-            0.05f,0.0050f
-            0.1f,0.04f
-            0.5f,0.5f
-            0.9f,0.04f
-            0.95f,0.0050f
-            0.99f,1.0fE-4
-            1.0f,0.0f
-            */
-            float result = 1.0E-4f * ((1 * (x - 0.0f) * (x - 0.05f) * (x - 0.1f) * (x - 0.5f) * (x - 0.9f) * (x - 0.95f) * (x - 0.99f) * (x - 1.0f)) / -1.4317846804800003E-5f) +
-                0.0050f * ((1 * (x - 0.0f) * (x - 0.01f) * (x - 0.1f) * (x - 0.5f) * (x - 0.9f) * (x - 0.95f) * (x - 0.99f) * (x - 1.0f)) / 3.074152499999999E-5f) +
-                0.04f * ((1 * (x - 0.0f) * (x - 0.01f) * (x - 0.05f) * (x - 0.5f) * (x - 0.9f) * (x - 0.95f) * (x - 0.99f) * (x - 1.0f)) / -9.804240000000002E-5f) +
-                0.5f * ((1 * (x - 0.0f) * (x - 0.01f) * (x - 0.05f) * (x - 0.1f) * (x - 0.9f) * (x - 0.95f) * (x - 0.99f) * (x - 1.0f)) / 0.0019448099999999997f) +
-                0.04f * ((1 * (x - 0.0f) * (x - 0.01f) * (x - 0.05f) * (x - 0.1f) * (x - 0.5f) * (x - 0.95f) * (x - 0.99f) * (x - 1.0f)) / -9.804239999999985E-5f) +
-                0.0050f * ((1 * (x - 0.0f) * (x - 0.01f) * (x - 0.05f) * (x - 0.1f) * (x - 0.5f) * (x - 0.9f) * (x - 0.99f) * (x - 1.0f)) / 3.0741525000000005E-5f) +
-                1.0E-4f * ((1 * (x - 0.0f) * (x - 0.01f) * (x - 0.05f) * (x - 0.1f) * (x - 0.5f) * (x - 0.9f) * (x - 0.95f) * (x - 1.0f)) / -1.4317846804800018E-5f);
-            smoothModTable[current] = result;
-            return result;
-        }
+            newHeights = cur.terrainData.GetHeights(0, 0, resolution, resolution);
 
-        //public static float[, ,] TerrainTexture(int sizeX, int sizeY, int texturecount, BiomeMap biomap)
-        //{
-        //    float[, ,] textures = new float[sizeX, sizeY, texturecount];
-        //    for (int x = 0; x < sizeX; x++)
-        //    {
-        //        for (int y = 0; y < sizeY; y++)
-        //        {
-        //            textures[x, y, Mathf.RoundToInt(biomap.Biomes[x,y])] = 1;
-        //        }
-        //    }
-        //    return textures;
-        //}
+            for (int i = 0; i < resolution; i++)
+            {
+                if (right != null)
+                    newHeights[i, resolution - 1] = rightHeights[i, 0];
 
-        public static SimpleTerrainGenerator GetGenerator(this Terrain ter)
-        {
-            if (ter.GetComponent<SimpleTerrainGenerator>() != null)
-                return ter.GetComponent<SimpleTerrainGenerator>();
-            else
-                return ter.gameObject.AddComponent<SimpleTerrainGenerator>();
-
+                if (bottom != null)
+                    newHeights[0, i] = bottomHeights[resolution - 1, i];
+            }
+            cur.terrainData.SetHeights(0, 0, newHeights);
         }
     }
+}

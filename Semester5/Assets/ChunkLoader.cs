@@ -26,11 +26,11 @@ public class ChunkLoader : MonoBehaviour
             for (int j = 0; j < LoadDistance; j++)
             {
                 GameObject go = new GameObject();
-                go.AddComponent<SimpleTerrainGenerator>();
+                go.AddComponent<Chunk>();
                 go.transform.position = new Vector3(((((LoadDistance - 1) / 2) - LoadDistance) + j + 1) * ChunkSize, 0, (((LoadDistance - 1) / 2 - LoadDistance) + i + 1) * ChunkSize);
                 go.name = go.name + "[" + (j - Center) + ";" + (i - Center) + "]";
                 lgo.Add(go);
-                go.GetComponent<SimpleTerrainGenerator>().Starter();
+                go.GetComponent<Chunk>().Starter();
             }
             Chunks.Add(lgo);
         }
@@ -38,25 +38,46 @@ public class ChunkLoader : MonoBehaviour
         {
             for (int j = 0; j < LoadDistance; j++)
             {
+                //if (i != 0)
+                //{
+                //    bt = Chunks[i - 1][j].GetComponent<Terrain>();
+                //    TerrainTools.StitchTerrains(bt, Chunks[i][j].GetComponent<Terrain>(), 20, 1);
+                //}
+                //if (i != LoadDistance - 1)
+                //{
+                //    tt = Chunks[i + 1][j].GetComponent<Terrain>();
+                //    TerrainTools.StitchTerrains(tt, Chunks[i][j].GetComponent<Terrain>(), 20, 1);
+                //}
+                //if (j != 0)
+                //{
+                //    lt = Chunks[i][j - 1].GetComponent<Terrain>();
+                //    TerrainTools.StitchTerrains(lt, Chunks[i][j].GetComponent<Terrain>(), 20, 1);
+                //}
+                //if (j != LoadDistance - 1)
+                //{
+                //    rt = Chunks[i][j + 1].GetComponent<Terrain>();
+                //    TerrainTools.StitchTerrains(rt, Chunks[i][j].GetComponent<Terrain>(), 20, 1);
+                //}
+
                 if (i != 0)
                 {
                     bt = Chunks[i - 1][j].GetComponent<Terrain>();
-                    TerrainTools.StitchTerrains(bt, Chunks[i][j].GetComponent<Terrain>(), 64, 0, 20);
+                    TerrainStitcher.stitch(bt, Chunks[i][j].GetComponent<Terrain>(), 20, 0);
                 }
                 if (i != LoadDistance - 1)
                 {
                     tt = Chunks[i + 1][j].GetComponent<Terrain>();
-                    TerrainTools.StitchTerrains(tt, Chunks[i][j].GetComponent<Terrain>(), 64, 0, 20);
+                    TerrainStitcher.stitch(tt, Chunks[i][j].GetComponent<Terrain>(), 20, 0);
                 }
                 if (j != 0)
                 {
                     lt = Chunks[i][j - 1].GetComponent<Terrain>();
-                    TerrainTools.StitchTerrains(lt, Chunks[i][j].GetComponent<Terrain>(), 64, 0, 20);
+                    TerrainStitcher.stitch(lt, Chunks[i][j].GetComponent<Terrain>(), 20, 0);
                 }
                 if (j != LoadDistance - 1)
                 {
                     rt = Chunks[i][j + 1].GetComponent<Terrain>();
-                    TerrainTools.StitchTerrains(rt, Chunks[i][j].GetComponent<Terrain>(), 64, 0, 20);
+                    TerrainStitcher.stitch(rt, Chunks[i][j].GetComponent<Terrain>(), 20, 0);
                 }
 
                 Chunks[i][j].GetComponent<Terrain>().SetNeighbors(lt, tt, rt, bt);
@@ -78,7 +99,7 @@ public class ChunkLoader : MonoBehaviour
             AddColumnBack();
             DeleteColumnFront();
         }
-        if (Player.transform.position.z > Chunks[Center + 1][Center].transform.position.z - (ChunkSize / 2))
+        if (Player.transform.position.z > Chunks[Center + 1][Center].transform.position.z + (ChunkSize / 2))
         {
             AddColumnFront();
             DeleteColumnBack();
@@ -88,7 +109,7 @@ public class ChunkLoader : MonoBehaviour
             AddRowBack();
             DeleteRowFront();
         }
-        if (Player.transform.position.x > Chunks[Center][Center + 1].transform.position.x - (ChunkSize / 2))
+        if (Player.transform.position.x > Chunks[Center][Center + 1].transform.position.x + (ChunkSize / 2))
         {
             AddRowFront();
             DeleteRowBack();
@@ -104,14 +125,50 @@ public class ChunkLoader : MonoBehaviour
         {
             GameObject go = new GameObject();
             go.transform.position = new Vector3(vec.x + c, 0, vec.z + ChunkSize);
-            go.AddComponent<SimpleTerrainGenerator>();
+            go.AddComponent<Chunk>();
             go.name = go.name + "[" + go.transform.position.x / ChunkSize + ";" + go.transform.position.z / ChunkSize + "]";
             lgo.Add(go);
-            go.GetComponent<SimpleTerrainGenerator>().Starter();
+            go.GetComponent<Chunk>().Starter();
             c += ChunkSize;
         }
 
         Chunks.Add(lgo);
+
+        for (int i = 0; i < Chunks.Count - 1; i++)
+        {
+
+            if (i == 0)
+            {
+                TerrainTools.StitchTerrains(Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 1][i + 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 2][i].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[Chunks.Count - 1][i].GetComponent<Terrain>().SetNeighbors(null, null, Chunks[Chunks.Count - 1][i + 1].GetComponent<Terrain>(), Chunks[Chunks.Count - 2][i].GetComponent<Terrain>());
+                Chunks[Chunks.Count - 1][i].GetComponent<Terrain>().Flush();
+                Chunks[Chunks.Count - 2][i].GetComponent<Terrain>().SetNeighbors(null, Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 2][i + 1].GetComponent<Terrain>(), Chunks[Chunks.Count - 3][i].GetComponent<Terrain>());
+                Chunks[Chunks.Count - 2][i].GetComponent<Terrain>().Flush();
+            }
+            else if (i == Chunks.Count - 2)
+            {
+                TerrainTools.StitchTerrains(Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 1][i - 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 2][i].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[Chunks.Count - 1][i].GetComponent<Terrain>().SetNeighbors(Chunks[Chunks.Count - 1][i - 1].GetComponent<Terrain>(), null, null, Chunks[Chunks.Count - 2][i].GetComponent<Terrain>());
+                Chunks[Chunks.Count - 1][i].GetComponent<Terrain>().Flush();
+                Chunks[Chunks.Count - 2][i].GetComponent<Terrain>().SetNeighbors(Chunks[Chunks.Count - 2][i - 1].GetComponent<Terrain>(), Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), null, Chunks[Chunks.Count - 3][i].GetComponent<Terrain>());
+                Chunks[Chunks.Count - 2][i].GetComponent<Terrain>().Flush();
+            }
+            else
+            {
+                TerrainTools.StitchTerrains(Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 1][i - 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 1][i + 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 2][i].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[Chunks.Count - 1][i].GetComponent<Terrain>().SetNeighbors(Chunks[Chunks.Count - 1][i - 1].GetComponent<Terrain>(), null, Chunks[Chunks.Count - 1][i + 1].GetComponent<Terrain>(), Chunks[Chunks.Count - 2][i].GetComponent<Terrain>());
+                Chunks[Chunks.Count - 1][i].GetComponent<Terrain>().Flush();
+                Chunks[Chunks.Count - 2][i].GetComponent<Terrain>().SetNeighbors(Chunks[Chunks.Count - 2][i - 1].GetComponent<Terrain>(), Chunks[Chunks.Count - 1][i].GetComponent<Terrain>(), Chunks[Chunks.Count - 2][i + 1].GetComponent<Terrain>(), Chunks[Chunks.Count - 3][i].GetComponent<Terrain>());
+                Chunks[Chunks.Count - 2][i].GetComponent<Terrain>().Flush();
+            }
+        }
     }
 
     void AddColumnBack()
@@ -123,13 +180,48 @@ public class ChunkLoader : MonoBehaviour
         {
             GameObject go = new GameObject();
             go.transform.position = new Vector3(vec.x + c, 0, vec.z - ChunkSize);
-            go.AddComponent<SimpleTerrainGenerator>();
+            go.AddComponent<Chunk>();
             go.name = go.name + "[" + go.transform.position.x / ChunkSize + ";" + go.transform.position.z / ChunkSize + "]";
             lgo.Add(go);
-            go.GetComponent<SimpleTerrainGenerator>().Starter();
+            go.GetComponent<Chunk>().Starter();
             c += ChunkSize;
         }
         Chunks.Insert(0, lgo);
+
+        for (int i = 0; i < Chunks.Count - 1; i++)
+        {
+            if (i == 0)
+            {
+                TerrainTools.StitchTerrains(Chunks[0][i].GetComponent<Terrain>(), Chunks[0][i + 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[0][i].GetComponent<Terrain>(), Chunks[1][i].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[0][i].GetComponent<Terrain>().SetNeighbors(null, Chunks[1][i].GetComponent<Terrain>(), Chunks[0][i + 1].GetComponent<Terrain>(), null);
+                Chunks[0][i].GetComponent<Terrain>().Flush();
+                Chunks[1][i].GetComponent<Terrain>().SetNeighbors(null, Chunks[2][i].GetComponent<Terrain>(), Chunks[1][i + 1].GetComponent<Terrain>(), Chunks[0][i].GetComponent<Terrain>());
+                Chunks[1][i].GetComponent<Terrain>().Flush();
+            }
+            else if (i == Chunks.Count - 2)
+            {
+                TerrainTools.StitchTerrains(Chunks[0][i].GetComponent<Terrain>(), Chunks[0][i - 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[0][i].GetComponent<Terrain>(), Chunks[1][i].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[0][i].GetComponent<Terrain>().SetNeighbors(Chunks[0][i - 1].GetComponent<Terrain>(), Chunks[1][i].GetComponent<Terrain>(), null, null);
+                Chunks[0][i].GetComponent<Terrain>().Flush();
+                Chunks[1][i].GetComponent<Terrain>().SetNeighbors(Chunks[1][i - 1].GetComponent<Terrain>(), Chunks[2][i].GetComponent<Terrain>(), null, Chunks[0][i].GetComponent<Terrain>());
+                Chunks[1][i].GetComponent<Terrain>().Flush();
+            }
+            else
+            {
+                TerrainTools.StitchTerrains(Chunks[0][i].GetComponent<Terrain>(), Chunks[0][i - 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[0][i].GetComponent<Terrain>(), Chunks[0][i + 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[0][i].GetComponent<Terrain>(), Chunks[1][i].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[0][i].GetComponent<Terrain>().SetNeighbors(Chunks[0][i - 1].GetComponent<Terrain>(), Chunks[1][i].GetComponent<Terrain>(), Chunks[0][i + 1].GetComponent<Terrain>(), null);
+                Chunks[0][i].GetComponent<Terrain>().Flush();
+                Chunks[1][i].GetComponent<Terrain>().SetNeighbors(Chunks[1][i - 1].GetComponent<Terrain>(), Chunks[2][i].GetComponent<Terrain>(), Chunks[1][i + 1].GetComponent<Terrain>(), Chunks[0][i].GetComponent<Terrain>());
+                Chunks[1][i].GetComponent<Terrain>().Flush();
+            }
+        }
     }
 
     void AddRowFront()
@@ -140,11 +232,47 @@ public class ChunkLoader : MonoBehaviour
         {
             GameObject go = new GameObject();
             go.transform.position = new Vector3(vec.x + ChunkSize, 0, vec.z + c);
-            go.AddComponent<SimpleTerrainGenerator>();
+            go.AddComponent<Chunk>();
             go.name = go.name + "[" + go.transform.position.x / ChunkSize + ";" + go.transform.position.z / ChunkSize + "]";
-            go.GetComponent<SimpleTerrainGenerator>().Starter();
+            go.GetComponent<Chunk>().Starter();
             lgo.Add(go);
             c += ChunkSize;
+        }
+
+
+        for (int i = 0; i < Chunks.Count; i++)
+        {
+            if (i == 0)
+            {
+                TerrainTools.StitchTerrains(Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i][Chunks.Count - 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[i][Chunks.Count].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 1].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count].GetComponent<Terrain>(), null, null);
+                Chunks[i][Chunks.Count].GetComponent<Terrain>().Flush();
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 2].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count - 1].GetComponent<Terrain>(), Chunks[i][Chunks.Count].GetComponent<Terrain>(), null);
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().Flush();
+            }
+            else if (i == Chunks.Count - 1)
+            {
+                TerrainTools.StitchTerrains(Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i][Chunks.Count - 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i - 1][Chunks.Count].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[i][Chunks.Count].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 1].GetComponent<Terrain>(), null, null, Chunks[i - 1][Chunks.Count].GetComponent<Terrain>());
+                Chunks[i][Chunks.Count].GetComponent<Terrain>().Flush();
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 2].GetComponent<Terrain>(), null, Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i - 1][Chunks.Count - 1].GetComponent<Terrain>());
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().Flush();
+            }
+            else
+            {
+                TerrainTools.StitchTerrains(Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i][Chunks.Count - 1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i - 1][Chunks.Count].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[i][Chunks.Count].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 1].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count].GetComponent<Terrain>(), null, Chunks[i - 1][Chunks.Count].GetComponent<Terrain>());
+                Chunks[i][Chunks.Count].GetComponent<Terrain>().Flush();
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 2].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count - 1].GetComponent<Terrain>(), Chunks[i][Chunks.Count].GetComponent<Terrain>(), Chunks[i - 1][Chunks.Count - 1].GetComponent<Terrain>());
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().Flush();
+            }
         }
     }
 
@@ -156,11 +284,47 @@ public class ChunkLoader : MonoBehaviour
         {
             GameObject go = new GameObject();
             go.transform.position = new Vector3(vec.x - ChunkSize, 0, vec.z + c);
-            go.AddComponent<SimpleTerrainGenerator>();
+            go.AddComponent<Chunk>();
             go.name = go.name + "[" + go.transform.position.x / ChunkSize + ";" + go.transform.position.z / ChunkSize + "]";
-            go.GetComponent<SimpleTerrainGenerator>().Starter();
+            go.GetComponent<Chunk>().Starter();
             lgo.Insert(0, go);
             c += ChunkSize;
+        }
+
+
+        for (int i = 0; i < Chunks.Count; i++)
+        {
+            if (i == 0)
+            {
+                TerrainTools.StitchTerrains(Chunks[i][0].GetComponent<Terrain>(), Chunks[i][1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[i][0].GetComponent<Terrain>(), Chunks[i + 1][0].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[i][0].GetComponent<Terrain>().SetNeighbors(null, Chunks[i + 1][0].GetComponent<Terrain>(), Chunks[i][1].GetComponent<Terrain>(), null);
+                Chunks[i][0].GetComponent<Terrain>().Flush();
+                Chunks[i][1].GetComponent<Terrain>().SetNeighbors(Chunks[i][0].GetComponent<Terrain>(), Chunks[i + 1][1].GetComponent<Terrain>(), Chunks[i][2].GetComponent<Terrain>(), null);
+                Chunks[i][1].GetComponent<Terrain>().Flush();
+            }
+            else if (i == Chunks.Count - 1)
+            {
+                TerrainTools.StitchTerrains(Chunks[i][0].GetComponent<Terrain>(), Chunks[i][1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[i][0].GetComponent<Terrain>(), Chunks[i - 1][0].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[i][0].GetComponent<Terrain>().SetNeighbors(null, null, Chunks[i][1].GetComponent<Terrain>(), Chunks[i - 1][0].GetComponent<Terrain>());
+                Chunks[i][0].GetComponent<Terrain>().Flush();
+                Chunks[i][1].GetComponent<Terrain>().SetNeighbors(Chunks[i][0].GetComponent<Terrain>(), null, Chunks[i][2].GetComponent<Terrain>(), Chunks[i - 1][1].GetComponent<Terrain>());
+                Chunks[i][1].GetComponent<Terrain>().Flush();
+            }
+            else
+            {
+                TerrainTools.StitchTerrains(Chunks[i][0].GetComponent<Terrain>(), Chunks[i][1].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[i][0].GetComponent<Terrain>(), Chunks[i - 1][0].GetComponent<Terrain>(), 64, 0);
+                TerrainTools.StitchTerrains(Chunks[i][0].GetComponent<Terrain>(), Chunks[i + 1][0].GetComponent<Terrain>(), 64, 0);
+
+                Chunks[i][0].GetComponent<Terrain>().SetNeighbors(null, Chunks[i + 1][0].GetComponent<Terrain>(), Chunks[i][1].GetComponent<Terrain>(), Chunks[i - 1][0].GetComponent<Terrain>());
+                Chunks[i][0].GetComponent<Terrain>().Flush();
+                Chunks[i][1].GetComponent<Terrain>().SetNeighbors(Chunks[i][0].GetComponent<Terrain>(), Chunks[i + 1][1].GetComponent<Terrain>(), Chunks[i][2].GetComponent<Terrain>(), Chunks[i - 1][1].GetComponent<Terrain>());
+                Chunks[i][1].GetComponent<Terrain>().Flush();
+            }
         }
     }
 
@@ -215,22 +379,17 @@ public class ChunkLoader : MonoBehaviour
             //TODO: Fix this copy pasta
             if (i == 0)
             {
-                //Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(null, null, Chunks[i + 1][Chunks.Count - 1].GetComponent<Terrain>(), Chunks[i][Chunks.Count - 2].GetComponent<Terrain>());
-				Debug.Log(" Middle: " + Chunks[i][Chunks.Count - 1].name + " Right: " + Chunks[i + 1][Chunks.Count - 1].name + " Bottom: " + Chunks[i][Chunks.Count - 2].name);
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 2].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count - 1].GetComponent<Terrain>(), null, null);
 			}
 			else if (i == Chunks.Count - 1)
 			{
-				//Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i - 1][Chunks.Count - 1].GetComponent<Terrain>(), null, null, Chunks[i][Chunks.Count - 2].GetComponent<Terrain>());
-				Debug.Log(" Middle: " + Chunks[i][Chunks.Count - 1].name + " Left: " + Chunks[i - 1][Chunks.Count - 1].name + " Bottom: " + Chunks[i][Chunks.Count - 2].name);
+
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 2].GetComponent<Terrain>(), null, null, Chunks[i - 1][Chunks.Count - 1].GetComponent<Terrain>());
 			}
             else
             {
-                //Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i - 1][Chunks.Count - 1].GetComponent<Terrain>(), null, Chunks[i + 1][Chunks.Count - 1].GetComponent<Terrain>(), Chunks[i][Chunks.Count - 2].GetComponent<Terrain>());
-				Debug.Log(" Middle: " + Chunks[i][Chunks.Count - 1].name + " Left: " + Chunks[i - 1][Chunks.Count - 1].name + " Right: " + Chunks[i + 1][Chunks.Count - 1].name + " Bottom: " + Chunks[i][Chunks.Count - 2].name);
+                Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 2].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count - 1].GetComponent<Terrain>(), null, Chunks[i - 1][Chunks.Count - 1].GetComponent<Terrain>());
             }
-            //Chunks[i][Chunks.Count - 2].GetComponent<Terrain>().SetNeighbors(null, null, null, null);
-            //Chunks[i][Chunks.Count - 2].GetComponent<Terrain>().Flush();
-			Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(null, null, null, null);
 			Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().Flush();
 		}
 		for (int i = 0; i < Chunks.Count; i++)
@@ -247,17 +406,16 @@ public class ChunkLoader : MonoBehaviour
             //TODO: Fix this copy pasta
             if (i == 0)
             {
-                //Chunks[i][1].GetComponent<Terrain>().SetNeighbors(null, Chunks[i][2].GetComponent<Terrain>(), Chunks[i + 1][1].GetComponent<Terrain>(), null);
+                Chunks[i][1].GetComponent<Terrain>().SetNeighbors(null, Chunks[i + 1][1].GetComponent<Terrain>(), Chunks[i][2].GetComponent<Terrain>(), null);
             }
 			else if (i == Chunks.Count - 1)
 			{
-				//Chunks[i][1].GetComponent<Terrain>().SetNeighbors(Chunks[i - 1][i].GetComponent<Terrain>(), Chunks[i][2].GetComponent<Terrain>(), null, null);
+                Chunks[i][1].GetComponent<Terrain>().SetNeighbors(null, null, Chunks[i][2].GetComponent<Terrain>(), Chunks[i - 1][1].GetComponent<Terrain>());
             }
             else
             {
-                //Chunks[i][1].GetComponent<Terrain>().SetNeighbors(Chunks[i - 1][i].GetComponent<Terrain>(), Chunks[i][2].GetComponent<Terrain>(), Chunks[i + 1][1].GetComponent<Terrain>(), null);
+                Chunks[i][1].GetComponent<Terrain>().SetNeighbors(null, Chunks[i + 1][1].GetComponent<Terrain>(), Chunks[i][2].GetComponent<Terrain>(), Chunks[i - 1][1].GetComponent<Terrain>());
             }
-            Chunks[i][1].GetComponent<Terrain>().SetNeighbors(null, null, null, null);
             Chunks[i][1].GetComponent<Terrain>().Flush();
             
         }
