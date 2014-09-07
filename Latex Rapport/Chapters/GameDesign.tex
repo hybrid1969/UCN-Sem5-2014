@@ -1,0 +1,30 @@
+\chapter{Game Design Document}
+
+For most games it is important to have a general idea of what should be included in the as well as knowledge about tools and external libraries. For this a dame design document is often used when making larger games. We will in this chapter make a basic game design document to explain tools and ideas for the game we are making.
+
+
+\section{Technologies}
+
+We will develop our game in Unity3D\cite{Unity3D}, as Unity3D is a free yet powerful game engine for 2D and 3D games. Besides being free unity3D also have a huge communities that are helpful and able to provide help and knowledge if it will ever be needed. Unity3D also have the possibility to target a wide range of platforms so that the finished product can be deployed on almost any platform. Unity3D uses the Mono Development and the .NET framework that Mono comes with. This means that all scripting is in C\# but are not limited to this as others .NET languages have been implemented, those being UnityScript as Boo Script. We will however for this project be using C\# as our main language.
+
+
+\section{External Libraries}
+
+As we will make a game with procedural generated content, we need some way of generating the worlds. The most common way to do this is to use noise maps, as these can create great detailed height maps, as well as a lot of other types of noise maps which we will explain in depth in chapter \ref{NoiseGen}.
+
+Instead of creating all the noises our self, we will use a free open source library called libnoise as it provides most of the most commonly used noises used in game development. Libnoise was originally created in C++ but have been ported to C\# and then to Unity3D, and have since been used by both smaller games and editor tools for terrain Generation.
+
+
+\section{Game World}
+
+The game world is randomly generated at each start up, but will consist of biomes or zones, with each of those having a unique look. Some biomes we have thought of includes:
+
+\begin{itemize}
+	\item Plains - Flat fields with rivers and trees.
+	\item Forest - Areas with dense trees foliages.
+	\item Mountain - Hilly areas with hard terrain.
+	\item Dessert - Dry sandy wilderness with slopes.
+	\item Arctic - Icy Wilderness with very little foliage.
+\end{itemize}
+
+Besides having a unique look, it will be possible to add special events and/or items that is unique for that biome as well. We will aim to have the generated world look interesting for the player, so that a new biome, of the same type of an already visited, feels new and refreshing and different from the previously.
