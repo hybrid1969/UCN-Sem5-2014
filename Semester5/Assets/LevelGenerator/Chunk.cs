@@ -4,15 +4,11 @@ using System.Collections;
 using LibNoise.Unity;
 using LibNoise.Unity.Generator;
 using LibNoise.Unity.Operator;
-using System.Diagnostics;
-
 public class Chunk : MonoBehaviour
 {
     public GameObject[] go;
     public int[] percentage;
     public int seed;
-    //public HeightMap HeightMap;
-    //public BiomeMap BiomeMap;
     public Terrain ThisTerrain;
     public Terrain TerTop;
     public Terrain TerLeft;
@@ -20,28 +16,26 @@ public class Chunk : MonoBehaviour
     public Terrain TerBottom;
     public bool Stitched = false;
 
-    // Use this for initialization
     public void Starter()
     {
         Terrain terrrain = this.gameObject.AddComponent<Terrain>();
-        TerrainData terrraindata = terrrain.terrainData = new TerrainData();
+        terrrain.terrainData = new TerrainData();
         terrrain.terrainData.heightmapResolution = 256;
         terrrain.terrainData.size = new Vector3(512, 2048, 512);
         TerrainCollider terrraincollider = this.gameObject.AddComponent<TerrainCollider>();
-        terrraincollider.terrainData = terrraindata;
+        terrraincollider.terrainData = terrrain.terrainData;
 
         float fl = UnityEngine.Random.Range(0.0f, 100000.0f);
         //PrepareTerrain();
-        float[,] h = new float[terrraindata.heightmapResolution, terrraindata.heightmapResolution];
+        float[,] h = new float[terrrain.terrainData.heightmapResolution, terrrain.terrainData.heightmapResolution];
 
         Vector3 gopos = terrrain.transform.position;
-        float cwidth = terrraindata.size.x;
-        int resolution = terrraindata.heightmapResolution;
+        float cwidth = terrrain.terrainData.size.x;
+        int resolution = terrrain.terrainData.heightmapResolution;
         float[,] hmap = new float[resolution, resolution];
         double yoffset = 0 - (gopos.x / cwidth);
         double xoffset = (gopos.z / cwidth);
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
+
         Noise2D tmpNoiseMap = new Noise2D(resolution, resolution, new Perlin(0.25, 1, 0.5, 0, 0, QualityMode.High));
         tmpNoiseMap.GeneratePlanar(xoffset, (xoffset) + (1f / resolution) * (resolution + 1), -yoffset, (-yoffset) + (1f / resolution) * (resolution + 1));
 
@@ -53,94 +47,22 @@ public class Chunk : MonoBehaviour
             }
         }
 
-        //for (int hY = 0; hY < resolution; hY++)
-        //{
-        //    float noisey = Mathf.Abs((float)(hY + this.transform.position.y) / 200.0f);
-        //    for (int hX = 0; hX < resolution; hX++)
-        //    {
-        //        float noicex = Mathf.Abs((float)(hX + this.transform.position.x) / 200.0f);
-        //        float noiceval = SimplexNoise.Generate(noicex, noisey);
-        //        noiceval /= 10;
-        //        hmap[hX, hY] = noiceval;
-        //    }
-        //}
-
-        terrrain.GetComponent<Terrain>().terrainData.SetHeights(0, 0, hmap);
-        sw.Stop();
-        UnityEngine.Debug.Log(sw.Elapsed);
-        //for (float i = 0; i < Ter.terrainData.heightmapHeight; i++)
-        //{
-        //    for (float j = 0; j < Ter.terrainData.heightmapHeight; j++)
-        //    {
-
-        //        h[(int)i, (int)j] = SimplexNoise.Noise(i / 64.0f, j / 64.0f);
-        //        h[(int)i, (int)j] += 1;
-        //        h[(int)i, (int)j] *= 0.5f;
-        //    }
-        //}
-
-        //Ter.terrainData.SetHeights(0, 0, h);
+        terrrain.terrainData.SetHeights(0, 0, hmap);
 
 
-        //TODO: Build this up clean and nice :D n^2 function
-        //float[,,] splat = new float[1024,1024,2];
-        //for (int x = 0; x < 1024; x++)
-        //    for (int y = 0; y < 1024; y++)
-        //    {
-        //        splat[x, y, 0] = 0.5f;
-        //        splat[x, y, 1] = 0.5f;
-        //    }
 
-        //ThisTerrain.terrainData.SetAlphamaps(0, 0, splat);
+        terrrain.terrainData.alphamapResolution = 256;
+        terrrain.terrainData.splatPrototypes = DataBaseHandler.DataBase.SplatsPrototypes;
+        float[, ,] amap = new float[terrrain.terrainData.alphamapResolution, terrrain.terrainData.alphamapResolution, terrrain.terrainData.splatPrototypes.Length];
+
+        for (int hY = 0; hY < terrrain.terrainData.alphamapResolution; hY++)
+        {
+            for (int hX = 0; hX < terrrain.terrainData.alphamapResolution; hX++)
+            {
+                amap[hX, hY, Mathf.RoundToInt(((tmpNoiseMap[hX, hY] * 0.5f) + 0.5f))] = 1;
+            }
+        }
+
+        terrrain.terrainData.SetAlphamaps(0, 0, amap);
     }
-
-    //public void PrepareTerrain()
-    //{
-    //    ThisTerrain = GetComponent<Terrain>();
-    //    //BiomeMap = new BiomeMap(ThisTerrain.terrainData.alphamapHeight);
-    //    //BiomeMap.SetNoise(2);
-    //    //BiomeMap.Smoothen();
-    //    //BiomeMap.Normalize();
-    //    //ThisTerrain.terrainData.SetAlphamaps(0, 0, TerrainTools.TerrainTexture(ThisTerrain.terrainData.alphamapHeight, ThisTerrain.terrainData.alphamapHeight, 4, BiomeMap));
-
-    //    HeightMap = new HeightMap(ThisTerrain.terrainData.heightmapHeight);
-    //    HeightMap.SetNoise(0.25f, 32, 0.5f, 2);
-    //    //HeightMap.Perturb(0, 0);
-    //    //HeightMap.Erode(8);
-    //    //for (int i = 0; i < 16; i++)
-    //    //HeightMap.Smoothen();
-    //    HeightMap.Normalize();
-    //    new WaitForEndOfFrame();
-    //    ThisTerrain.terrainData.SetHeights(0, 0, HeightMap.Heights);
-    //    ThisTerrain.SetNeighbors(TerLeft, TerTop, TerRight, TerBottom);
-    //    if (TerLeft != null)
-    //    {
-    //        StartCoroutine(TerrainTools.StitchTerrains(ThisTerrain, TerLeft, 128, 0, 20));
-    //    }
-    //    if (TerTop != null)
-    //    {
-    //        StartCoroutine(TerrainTools.StitchTerrains(ThisTerrain, TerTop, 128, 0, 20));
-    //    }
-    //    if (TerRight != null)
-    //    {
-    //        StartCoroutine(TerrainTools.StitchTerrains(ThisTerrain, TerRight, 128, 0, 20));
-    //    }
-    //    if (TerBottom != null)
-    //    {
-    //        StartCoroutine(TerrainTools.StitchTerrains(ThisTerrain, TerBottom, 128, 0, 20));
-    //    }
-    //    Debug.Log(Mathf.PerlinNoise(1, 1));
-    //    //GetComponent<GraphUpdateScene>().Apply();
-    //    ////new AstarPath().
-    //    //GameObject.Find("A*").GetComponent<AstarPath>().Scan();
-    //    //Debug.Log(GameObject.Find("A*").GetComponent<AstarPath>().graphTypes[0].ToString());
-    //}
-
-    //void OnGUI()
-    //{
-    //    if (GUI.Button(new Rect(0, 0, 120, 50), "Generate"))
-    //    {
-    //        Starter();
-    //    }
-    //}
 }

@@ -49,11 +49,8 @@
      <Compile Include="Assets\Biome.cs" />
      <Compile Include="Assets\ChunkLoader.cs" />
      <Compile Include="Assets\DataBaseHandler.cs" />
-     <Compile Include="Assets\LevelGenerator\BiomeMap.cs" />
      <Compile Include="Assets\LevelGenerator\Chunk.cs" />
      <Compile Include="Assets\LevelGenerator\HeightMap.cs" />
-     <Compile Include="Assets\LevelGenerator\Perlin.cs" />
-     <Compile Include="Assets\LevelGenerator\SimplexNoice.cs" />
      <Compile Include="Assets\LevelGenerator\TerrainTools.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\Billow.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\BrownianMotion.cs" />

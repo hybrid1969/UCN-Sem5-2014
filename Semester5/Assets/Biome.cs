@@ -4,7 +4,7 @@ using System.Collections;
 [System.Serializable]
 public class Biome
 {
-    public Texture tex;
+    public Texture2D tex;
     public BiomeTypes Type;
     public float mountainPower = 1;
     public float minHeight = 10;
