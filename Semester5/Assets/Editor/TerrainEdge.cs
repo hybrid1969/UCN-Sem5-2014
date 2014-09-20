@@ -1,13 +1,14 @@
 using UnityEngine;
 using UnityEditor;
-using TerEdge;
 using System.Collections;
-using LibNoise.Unity;
-using LibNoise.Unity.Generator;
-using LibNoise.Unity.Operator;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
+using LibNoise.Unity;
+using LibNoise.Unity.Generator;
+using LibNoise.Unity.Operator;
+using TerEdge;
+
 
 // TerrainEdge GUI/Interface
 
@@ -881,7 +882,7 @@ public class TENoiseLab : TEGroup
 	public static string[] teFunctionTypes = new string[18] {"Add","Subtract","Multiply","Min","Max","Blend","Clamp","Power","Curve","Terrace","Abs","Exponent","Invert","ScaleBias","Turbulence","Select","TEWarp","WindexWarp"};
     public static string[] teNoiseChannels = new string[20] {"Channel 0","Channel 1","Channel 2","Channel 3","Channel 4","Channel 5","Channel 6","Channel 7","Channel 8","Channel 9","Channel 10","Channel 11","Channel 12","Channel 13","Channel 14","Channel 15","Channel 16","Channel 17","Channel 18","Channel 19"};
     public static string[] teNoiseChannelTypes = new string[3] { "(none)", "Generator", "Function" };
-    public static string[] teNoiseTypes = new string[7] { "Perlin", "Billow", "Ridged", "Voronoi" , "fBm", "HeterogeneousMultiFractal", "HybridMultiFractal"};
+    public static string[] teNoiseTypes = new string[8] { "Perlin", "Billow", "Ridged", "Voronoi" , "fBm", "HeterogeneousMultiFractal", "HybridMultiFractal", "LinearGradientNoise"};
     public static int[] teFunctionTypeIndex = new int[20];
     public static int[] teNoiseTypeIndex = new int[20];
     public static int[] srcChannel1Id = new int[20];
@@ -1027,7 +1028,7 @@ public class TENoiseLab : TEGroup
             srcChannel1Id[teNoiseChanIndex] = EditorGUILayout.Popup(srcChannel1Id[teNoiseChanIndex], teNoiseChannels);
             if (tempInt != srcChannel1Id[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
             GUILayout.EndHorizontal();
-            if (teFunctionTypeIndex[teNoiseChanIndex] < 6)
+            if (teFunctionTypeIndex[teNoiseChanIndex] < 6 || teFunctionTypeIndex[teNoiseChanIndex] == 15)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Source B", GUILayout.Width(80));
@@ -1053,10 +1054,10 @@ public class TENoiseLab : TEGroup
 			}
 			if(teFunctionTypeIndex[teNoiseChanIndex]==13){ // ScaleBias
 				tempDouble = scale[teNoiseChanIndex];
-				scale[teNoiseChanIndex] = (double)teUI.floatSlider("Scale:",(float)scale[teNoiseChanIndex],0.0f,1.0f);
+				scale[teNoiseChanIndex] = (double)teUI.floatSlider("Scale:",(float)scale[teNoiseChanIndex],-1.0f,1.0f);
 				if(tempDouble!=noiseFuncMin[teNoiseChanIndex]){previewRedrawTime = (int) EditorApplication.timeSinceStartup+1;}			
 				tempDouble = bias[teNoiseChanIndex];
-				bias[teNoiseChanIndex] = (double)teUI.floatSlider("Bias:",(float)bias[teNoiseChanIndex],0.0f,1.0f);
+				bias[teNoiseChanIndex] = (double)teUI.floatSlider("Bias:",(float)bias[teNoiseChanIndex],-1.0f,1.0f);
 				if(tempDouble!=noiseFuncMin[teNoiseChanIndex]){previewRedrawTime = (int) EditorApplication.timeSinceStartup+1;}			
 			}
 			if(teFunctionTypeIndex[teNoiseChanIndex]==14){
@@ -1121,11 +1122,12 @@ public class TENoiseLab : TEGroup
             teNoiseTypeIndex[teNoiseChanIndex] = EditorGUILayout.Popup(teNoiseTypeIndex[teNoiseChanIndex], teNoiseTypes);
             if (tempInt != teNoiseTypeIndex[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
             GUILayout.EndHorizontal();
-            		
-            tempInt = seed[teNoiseChanIndex];
-			seed[teNoiseChanIndex] = teUI.intSlider("Seed:", seed[teNoiseChanIndex], 0, 65535);
-            if (tempInt != seed[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
-			
+            if (teNoiseTypeIndex[teNoiseChanIndex] != 7)
+            {
+                tempInt = seed[teNoiseChanIndex];
+                seed[teNoiseChanIndex] = teUI.intSlider("Seed:", seed[teNoiseChanIndex], 0, 65535);
+                if (tempInt != seed[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
+            }
 			tempDouble = frequency[teNoiseChanIndex];
 			frequency[teNoiseChanIndex] = (double)teUI.floatSlider("Frequency:", (float)frequency[teNoiseChanIndex], 0.01f, 4f);
 			if (tempDouble != frequency[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
@@ -1141,8 +1143,9 @@ public class TENoiseLab : TEGroup
 				gain[teNoiseChanIndex] = (double)teUI.floatSlider("Gain:", (float)gain[teNoiseChanIndex], 0.0f, 1f);
 				if (tempDouble != gain[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
 			}
-			
-            if (teNoiseTypeIndex[teNoiseChanIndex] != 3){ 
+
+            if (teNoiseTypeIndex[teNoiseChanIndex] != 3 && teNoiseTypeIndex[teNoiseChanIndex] != 7)
+            { 
                 tempDouble = lacunarity[teNoiseChanIndex];
                 lacunarity[teNoiseChanIndex] = (double)teUI.floatSlider("Lacunarity:",(float)lacunarity[teNoiseChanIndex], 0.1f, 4.0f);
                 if (tempDouble != lacunarity[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
@@ -1152,9 +1155,9 @@ public class TENoiseLab : TEGroup
 	                if (tempDouble != persistance[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
 				}
                 tempInt = octaves[teNoiseChanIndex];
-                octaves[teNoiseChanIndex] = teUI.intSlider("Octaves:",octaves[teNoiseChanIndex], 1, 10);
+                octaves[teNoiseChanIndex] = teUI.intSlider("Octaves:",octaves[teNoiseChanIndex], 1, 100);
                 if (tempInt != octaves[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 1; }
-            } else {     
+            } else if (teNoiseTypeIndex[teNoiseChanIndex] != 7){     
                 tempDouble = displacement[teNoiseChanIndex];
                 displacement[teNoiseChanIndex] = (double)teUI.floatSlider("Displacement:",(float)displacement[teNoiseChanIndex], 0.01f, 1.0f);
                 if (tempDouble != displacement[teNoiseChanIndex]) { previewRedrawTime = (int)EditorApplication.timeSinceStartup + 2; }
@@ -1263,6 +1266,7 @@ public class TENoiseLab : TEGroup
             if (tIdx == 4) { moduleBase[channelId] = new BrownianMotion(frequency[channelId], lacunarity[channelId], octaves[channelId], seed[channelId], QualityMode.High); }
             if (tIdx == 5) { moduleBase[channelId] = new HeterogeneousMultiFractal(frequency[channelId], lacunarity[channelId], octaves[channelId], persistance[channelId], seed[channelId], offset[channelId], QualityMode.High); }
             if (tIdx == 6) { moduleBase[channelId] = new HybridMulti(frequency[channelId], lacunarity[channelId], octaves[channelId], persistance[channelId], seed[channelId], offset[channelId], gain[channelId], QualityMode.High); }
+            if (tIdx == 7) { moduleBase[channelId] = new LinearGradientNoise(frequency[channelId]); }
         }
         if (teNoiseChanTypeIndex[channelId] == 2)
         {
@@ -1290,7 +1294,7 @@ public class TENoiseLab : TEGroup
 			}
             if (fIdx == 17) { moduleBase[channelId] = new WindexWarp(moduleBase[srcChannel1Id[channelId]]); }
 			if (fIdx == 16) { moduleBase[channelId] = new TEWarp(moduleBase[srcChannel1Id[channelId]]); }
-			if (fIdx == 15) { moduleBase[channelId] = new Select((double)noiseFuncMin[channelId], (double)noiseFuncMax[channelId], falloff[channelId],moduleBase[srcChannel1Id[channelId]],moduleBase[srcChannel3Id[channelId]]); }
+            if (fIdx == 15) { moduleBase[channelId] = new Select((double)noiseFuncMin[channelId], (double)noiseFuncMax[channelId], falloff[channelId], moduleBase[srcChannel1Id[channelId]], moduleBase[srcChannel2Id[channelId]], moduleBase[srcChannel3Id[channelId]]); }
 			if (fIdx == 14) { moduleBase[channelId] = new Turbulence(power[channelId],moduleBase[srcChannel1Id[channelId]]); }
 			if (fIdx == 13) { moduleBase[channelId] = new ScaleBias(scale[channelId],bias[channelId],moduleBase[srcChannel1Id[channelId]]); }
 			if (fIdx == 12) { moduleBase[channelId] = new Invert(moduleBase[srcChannel1Id[channelId]]);}

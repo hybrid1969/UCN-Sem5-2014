@@ -4,3 +4,12 @@
 
 \section{World Generator}
 
+%TODO: Example Listing
+\begin{lstlisting}[caption = The Update() call from the turn manager., label=code:aicall, language=Csharp]
+UnitFSM.FSM.CurrentState = AIWrapper.GetDecision(unit.gameObject, UnitFSM.FSM.CurrentState);
+List<IAction> actions =UnitFSM.FSM.CurrentState.GetActionList();
+foreach(IAction ac in actions)
+{
+	ac.act(unit.gameObject);
+}
+\end{lstlisting}

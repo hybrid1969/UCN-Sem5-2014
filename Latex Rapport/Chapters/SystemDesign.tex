@@ -1,5 +1,8 @@
 \chapter{System Design}
 
+To design a game we are faced with a lot of design choices. To make the right choice can determine how the finished result will be met by the audience. We will in this chapter look into which design choices we have made to have a general idea about how our game will be designed.
+
+
 \section{Infinite World}
 
 As our world will keep on generating infinitely we will need some way of handle the world loading. As most computers have a limited amount of memory we cannot keep generating new content without also taking care of removing the old content. The way most other games handle this problem is to divide the world into chunks of a desirable size.
@@ -71,10 +74,25 @@ We have now demonstrated the usage of a basic chunk loader, however with only 9 
 \label{table4}
 \end{table}
 
-It is possible to increase the loaded area, as well as the number of new chunks to add and remove, however it is on the cost of more memory usage. For instance, we could have a 9x9 grid with 81 chunks loaded at once and have the 2 outermost columns be triggers, but this way we do have over 3 times as many chunks as we would in a 5x5 grid and there by probably also over 3 times as much memory usage.
-%A load-distance option could be added in the game to let the player select how much that should be loaded at once as some player might be able to 
+It is possible to increase the loaded area, as well as the number of new chunks to add and remove, however it is on the cost of more memory usage. For instance, we could have a 9x9 grid with 81 chunks loaded at once and have the 2 outermost columns be triggers, but this way we do have over 3 times as many chunks as we would in a 5x5 grid and there by also over 3 times as much memory usage. We could make each chunk smaller to reduce the memory usage, but this would require more chunks to be loaded at once for the player to the best view distance.
 
 
 \section{World Generation}
 
-\section{World Events}
+As we have the terrain divided into chunks we ultimately only need to generate the world per chunk, this meaning we can work with one chunk at a time. To generate the terrain for each chunk we will use noise maps, however as we want smooth transition between the chunks we also need the noise to be smooth and for this we will need to use coherent-noise. The difference between normal noise and coherent-noise is illustrated in \figref{fig:noise}.
+
+Libnoise already implements coherent-noise function in their noise generators, which give it the properties to always return the same output value, when ever the input value is the same. Besides that a coherent-noise function will produce a small change in the output value, if a small change in the input value have been made, and a large change in the output valve if the a large change have been made to the input value\cite{coherentnoise}.
+
+\begin{figure}[H]
+		\includegraphics[width=0.49\linewidth]{img/noise}\includegraphics[width=0.49\linewidth]{img/coherentnoise}
+		\centering
+		\caption{The figure illustrates the difference between noise and coherent-noise in a one-dimensional space. The leftmost is normal noise, where the rightmost is coherent-noise.}
+		\label{fig:noise}
+\end{figure}
+
+As illustrated in \figref{fig:noise} the non-coherent-noise would result in a very uneven and rough terrain which would ultimately be unplayable. We could smooth the noise before applying it to the terrain, but since coherent-noise do that for us we can simply use that instead. If we look at the rightmost graph in \figref{fig:noise} we can see the $n(x)$ axis represent the output value and the $x$ axis the input value.
+
+If we want to use the rightmost noise to generate terrain, we first need to know the size of the terrain. For simplicity lets say the terrain size is 1. For the first terrain we will use the noise between 0 and 1 which will then result in a huge valley and then a small hill. We then move on to the next terrain, which will be given an offset of 1 as this is the second terrain. This will result in the second will have the noise between 1 and 2 which will result in a valley followed by a hill. This process continues, so the third terrain will have an offset of 2 and have the noise between 2 and 3 and so on.
+
+
+%\section{World Events}

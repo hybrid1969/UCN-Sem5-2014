@@ -147,7 +147,7 @@ namespace LibNoise.Unity.Operator
 			double xd = x + (this.m_xDistort.GetValue(x + Turbulence.X0, y + Turbulence.Y0, z + Turbulence.Z0) * this.m_power);
 			double yd = y + (this.m_yDistort.GetValue(x + Turbulence.X1, y + Turbulence.Y1, z + Turbulence.Z1) * this.m_power);
 			double zd = z + (this.m_zDistort.GetValue(x + Turbulence.X2, y + Turbulence.Y2, z + Turbulence.Z2) * this.m_power);
-			return this.m_modules[0].GetValue(xd, yd, zd);
+			return this.m_modules[0].GetValue(xd, y, z);
 		}
 
 		#endregion

@@ -56,9 +56,11 @@
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\BrownianMotion.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\Checker.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\Const.cs" />
+     <Compile Include="Assets\Resources\LibNoise.Unity\Generator\CurveGradientNoise.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\Cylinders.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\HeterogeneousMultiFractal.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\HybridMulti.cs" />
+     <Compile Include="Assets\Resources\LibNoise.Unity\Generator\LinearGradientNoise.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\Perlin.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\RiggedMultifractal.cs" />
      <Compile Include="Assets\Resources\LibNoise.Unity\Generator\Spheres.cs" />

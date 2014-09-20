@@ -11,7 +11,7 @@ namespace LibNoise.Unity
 
         internal const double DegToRad = Math.PI / 180.0;
         internal const double Sqrt3 = 1.7320508075688772935;
-        internal const int OctavesMaximum = 30;
+        internal const int OctavesMaximum = 100;
 
 #if NOISE_VERSION_1
         private const int GeneratorNoiseX = 1;

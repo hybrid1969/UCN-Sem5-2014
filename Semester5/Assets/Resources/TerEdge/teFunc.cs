@@ -308,34 +308,53 @@ namespace TerEdge
 		public static void generateHeightmap(GameObject terrObject, ModuleBase modbase, float alphaAmount, float noiseAmp){
 			Vector3 gopos = terrObject.transform.position;
 	        float cwidth = terrObject.GetComponent<Terrain>().terrainData.size.x;
-	        int resolution = terrObject.GetComponent<Terrain>().terrainData.heightmapResolution;
-			float[,] hmap = new float[resolution,resolution];
+	        int resolution;// = terrObject.GetComponent<Terrain>().terrainData.heightmapResolution;
+			//float[,] hmap = new float[resolution,resolution];
 	        double yoffset = 0 - (gopos.x / cwidth);
 	        double xoffset = (gopos.z / cwidth);
+            resolution = terrObject.GetComponent<Terrain>().terrainData.alphamapResolution;
 	        Noise2D tmpNoiseMap = new Noise2D(resolution, resolution, modbase);
 	        tmpNoiseMap.GeneratePlanar(xoffset, (xoffset) + (1f / resolution) * (resolution + 1), -yoffset, (-yoffset) + (1f / resolution) * (resolution + 1));
-	        if (alphaAmount == 1.0f)
-	        {
-	            for (int hY = 0; hY < resolution; hY++)
-	            {
-	                for (int hX = 0; hX < resolution; hX++)
-	                {
-	                    hmap[hX, hY] = ((tmpNoiseMap[hX, hY]*0.5f) + 0.5f) * noiseAmp;
-	                }
-	            }
-	        }
-	        else
-	        {
-	            hmap = terrObject.GetComponent<Terrain>().terrainData.GetHeights(0, 0, resolution, resolution);
-	            for (int hY = 0; hY < resolution; hY++)
-	            {
-	                for (int hX = 0; hX < resolution; hX++)
-	                {
-	                    hmap[hX, hY] = ((1.0f - alphaAmount) * hmap[hX, hY]) + (alphaAmount * (((tmpNoiseMap[hX, hY]*0.5f) + 0.5f) * noiseAmp));
-	                }
-	            }
-	        }
-	        terrObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, hmap);
+            //if (alphaAmount == 1.0f)
+            //{
+            //    for (int hY = 0; hY < resolution; hY++)
+            //    {
+            //        for (int hX = 0; hX < resolution; hX++)
+            //        {
+            //            hmap[hX, hY] = ((tmpNoiseMap[hX, hY]*0.5f) + 0.5f) * noiseAmp;
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    hmap = terrObject.GetComponent<Terrain>().terrainData.GetHeights(0, 0, resolution, resolution);
+            //    for (int hY = 0; hY < resolution; hY++)
+            //    {
+            //        for (int hX = 0; hX < resolution; hX++)
+            //        {
+            //            hmap[hX, hY] = ((1.0f - alphaAmount) * hmap[hX, hY]) + (alphaAmount * (((tmpNoiseMap[hX, hY]*0.5f) + 0.5f) * noiseAmp));
+            //        }
+            //    }
+            //}
+            //terrObject.GetComponent<Terrain>().terrainData.SetHeights(0, 0, hmap);
+
+            //resolution = terrObject.GetComponent<Terrain>().terrainData.alphamapResolution;
+            float[,,] amap = new float[resolution, resolution, terrObject.GetComponent<Terrain>().terrainData.splatPrototypes.Length];
+            for (int hY = 0; hY < resolution; hY++)
+            {
+                for (int hX = 0; hX < resolution; hX++)
+                {
+					try
+					{
+                    	amap[hY, hX, Mathf.RoundToInt((float)(((tmpNoiseMap[hY, hX] * 0.5f) + 0.5f)) * 3)] = 1;
+					}
+					catch
+					{
+						float f = (float)(((tmpNoiseMap[hY, hX] * 0.5f) + 0.5f));
+					}
+                }
+            }
+            terrObject.GetComponent<Terrain>().terrainData.SetAlphamaps(0, 0, amap);
 	    }
 		
 		

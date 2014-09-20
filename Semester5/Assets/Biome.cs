@@ -4,7 +4,8 @@ using System.Collections;
 [System.Serializable]
 public class Biome
 {
-    public Texture2D tex;
+    public Texture2D Texture;
+    public Texture2D Normal;
     public BiomeTypes Type;
     public float mountainPower = 1;
     public float minHeight = 10;
@@ -15,6 +16,12 @@ public class Biome
 
 public enum BiomeTypes
 {
-    Grassy,
-    Woody,
+    Polar = 0,
+    Tundra = 1,
+    Tiaga = 2,
+    Woods = 3,
+    RainForest = 4,
+    Desert = 5,
+
+    Ocean = 6,
 }
