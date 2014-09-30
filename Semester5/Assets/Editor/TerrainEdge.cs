@@ -4,9 +4,9 @@ using System.Collections;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
-using LibNoise.Unity;
-using LibNoise.Unity.Generator;
-using LibNoise.Unity.Operator;
+using LibNoise;
+using LibNoise.Generator;
+using LibNoise.Operator;
 using TerEdge;
 
 
@@ -1261,7 +1261,7 @@ public class TENoiseLab : TEGroup
             int tIdx = teNoiseTypeIndex[channelId];
             if (tIdx == 0) { moduleBase[channelId] = new Perlin(frequency[channelId], lacunarity[channelId], persistance[channelId], octaves[channelId], seed[channelId], QualityMode.High); }
             if (tIdx == 1) { moduleBase[channelId] = new Billow(frequency[channelId], lacunarity[channelId], persistance[channelId], octaves[channelId], seed[channelId], QualityMode.High); }
-            if (tIdx == 2) { moduleBase[channelId] = new RiggedMultifractal(frequency[channelId], lacunarity[channelId], octaves[channelId], seed[channelId], QualityMode.High); }
+            if (tIdx == 2) { moduleBase[channelId] = new RidgedMultifractal(frequency[channelId], lacunarity[channelId], octaves[channelId], seed[channelId], QualityMode.High); }
             if (tIdx == 3) { moduleBase[channelId] = new Voronoi(frequency[channelId], displacement[channelId], seed[channelId], distance[channelId]); }
             if (tIdx == 4) { moduleBase[channelId] = new BrownianMotion(frequency[channelId], lacunarity[channelId], octaves[channelId], seed[channelId], QualityMode.High); }
             if (tIdx == 5) { moduleBase[channelId] = new HeterogeneousMultiFractal(frequency[channelId], lacunarity[channelId], octaves[channelId], persistance[channelId], seed[channelId], offset[channelId], QualityMode.High); }

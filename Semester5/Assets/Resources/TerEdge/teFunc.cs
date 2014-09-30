@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEditor;
-using LibNoise.Unity;
-using LibNoise.Unity.Generator;
-using LibNoise.Unity.Operator;
+using LibNoise;
+using LibNoise.Generator;
+using LibNoise.Operator;
 using System.IO;
 using System.Collections;
 using System.Collections.Generic;

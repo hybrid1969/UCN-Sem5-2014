@@ -4,10 +4,11 @@ using System.Collections.Generic;
 
 public class ChunkLoader : MonoBehaviour
 {
+    public static ChunkLoader chunkloader;
     int LoadDistance = 5;
     int Center { get { return (LoadDistance - 1) / 2; } }
     int ChunkSize = 512;
-    List<List<GameObject>> Chunks = new List<List<GameObject>>();
+    public List<List<GameObject>> Chunks = new List<List<GameObject>>();
 
     Terrain lt;
     Terrain rt;
@@ -16,6 +17,11 @@ public class ChunkLoader : MonoBehaviour
 
     [SerializeField]
     GameObject Player;
+
+    public ChunkLoader()
+    {
+        chunkloader = this;
+    }
 
 	// Use this for initialization
 	void Start ()
@@ -28,7 +34,7 @@ public class ChunkLoader : MonoBehaviour
                 GameObject go = new GameObject();
                 go.AddComponent<Chunk>();
                 go.transform.position = new Vector3(((((LoadDistance - 1) / 2) - LoadDistance) + j + 1) * ChunkSize, 0, (((LoadDistance - 1) / 2 - LoadDistance) + i + 1) * ChunkSize);
-                go.name = go.name + "[" + (j - Center) + ";" + (i - Center) + "]";
+                go.name = "Chunk" + "[" + (j - Center) + ";" + (i - Center) + "]";
                 lgo.Add(go);
                 go.GetComponent<Chunk>().Starter();
             }
@@ -424,5 +430,20 @@ public class ChunkLoader : MonoBehaviour
             GameObject.Destroy(Chunks[i][0]);
             Chunks[i].RemoveAt(0);
         }
+    }
+
+    public Chunk GetChunkAtPlayer()
+    {
+        return GameObject.Find("Chunk[" + ((int)(Player.transform.position.x / ChunkSize)).ToString() + ";" + ((int)(Player.transform.position.z / ChunkSize)).ToString() + "]").GetComponent<Chunk>();
+    }
+
+    public Chunk GetChunkAtWorldLocation(float x, float y)
+    {
+        return GameObject.Find("Chunk[" + ((int)(x / ChunkSize)).ToString() + ";" + ((int)(y / ChunkSize)).ToString() + "]").GetComponent<Chunk>();
+    }
+
+    public Chunk GetChunkAtChunkLocation(int x, int y)
+    {
+        return GameObject.Find("Chunk[" + (x).ToString() + ";" + (y).ToString() + "]").GetComponent<Chunk>();
     }
 }
