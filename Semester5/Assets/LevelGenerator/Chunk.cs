@@ -7,17 +7,12 @@ using LibNoise.Generator;
 
 public class Chunk : MonoBehaviour
 {
-    //public GameObject[] go;
-    //public int[] percentage;
-    //public int seed;
-    //public Terrain ThisTerrain;
-    //public Terrain TerTop;
-    //public Terrain TerLeft;
-    //public Terrain TerRight;
-    //public Terrain TerBottom;
-    //public bool Stitched = false;
-    public List<BresenhamValues>[] bresenhamvalues = new List<BresenhamValues>[4];
+    Vector2[,] WindDirection;    
     float[,] RainShadow;
+    int MaxWindSpeed = 50;
+    Texture2D rain1;
+    Texture2D rain2;
+
 
     float xOffset
     {
@@ -43,13 +38,8 @@ public class Chunk : MonoBehaviour
         }
     }
 
-    public void Starter()
+    public void Generate()
     {
-        bresenhamvalues[0] = new List<BresenhamValues>();
-        bresenhamvalues[1] = new List<BresenhamValues>();
-        bresenhamvalues[2] = new List<BresenhamValues>();
-        bresenhamvalues[3] = new List<BresenhamValues>();
-
         SetupTerainData();
         BiomeTypes[,] Biomes = GenerateBiomes();
         //GenerateHeightmap(Biomes);
@@ -94,36 +84,107 @@ public class Chunk : MonoBehaviour
 
         int resolution = ThisTerain.terrainData.alphamapResolution;
 
-        Noise2D temperature = new Noise2D(resolution, resolution, new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
-        temperature.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
+        Noise2D heightMap = new Noise2D(resolution, resolution, new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
+        heightMap.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
 
         Noise2D rainfall = new Noise2D(resolution, resolution, new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
         rainfall.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
 
-        Noise2D WindMap = new Noise2D(resolution, resolution, new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
-        WindMap.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
+        Noise2D WindMap = new Noise2D((resolution + (MaxWindSpeed * 2)), (resolution + (MaxWindSpeed * 2)), new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
+        WindMap.GeneratePlanar(yOffset - ((double)MaxWindSpeed / (double)resolution), (yOffset + 1) + ((double)MaxWindSpeed / (double)resolution), xOffset - ((double)MaxWindSpeed / (double)resolution), (xOffset + 1) + ((double)MaxWindSpeed / (double)resolution));
 
-        Noise2D RainCalcMap = new Noise2D(resolution, resolution + 50, new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
-        RainCalcMap.GeneratePlanar(xOffset, (xOffset + 1), yOffset, (yOffset + 1) + (50.0 / resolution));
+        Noise2D RainCalcMap = new Noise2D((resolution + (MaxWindSpeed * 2)), (resolution + (MaxWindSpeed * 2)), new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
+        RainCalcMap.GeneratePlanar(xOffset - ((double)MaxWindSpeed / (double)resolution), (xOffset + 1) + ((double)MaxWindSpeed / (double)resolution), yOffset - ((double)MaxWindSpeed / (double)resolution), (yOffset + 1) + ((double)MaxWindSpeed / (double)resolution));
 
 
         RainShadow = new float[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
-        //Texture2D tex = new Texture2D(resolution, resolution + 50);
-        for (int i = 0; i < RainCalcMap.Width; i++)
+        WindDirection = new Vector2[(resolution + (MaxWindSpeed * 2)), (resolution + (MaxWindSpeed * 2))];
+        rain2 = new Texture2D(resolution, resolution + 50);
+        for (int i = 0; i < resolution + (MaxWindSpeed * 2); i++)
         {
-            for (int j = 0; j < RainCalcMap.Height; j++)
+            for (int j = 0; j < resolution + (MaxWindSpeed * 2); j++)
             {
-                if (RainCalcMap[i, j] <= 0f)
+                float val = ((((CosGradient((i - 50) + (yOffset * (float)(resolution)), (float)(resolution), 0.25f) * 0.5f) + 0.5f) + (((WindMap[i,j]) * 0.5f) + 0.5f) / 2) * 12.0f);
+                if (val >= 0 && val < 2)
                 {
-                    //TODO: Make a call check if we can draw to any neibor chunks otherwise make all chunks check if there is lines that haven't yet benn drawn and lastly clean it up.
-                    Bresenham(i, i, j - 50, j);
-          //          tex.SetPixel(i, j, Color.white);
+                    if (val >= 1)
+                    {
+                        WindDirection[i, j] = new Vector2(-1.0f, (val - 2.0f));
+                    }
+                    else
+                    {
+                        WindDirection[i, j] = new Vector2(val * -1.0f, -1.0f);
+                    }
+                }
+                else if (val >= 2 && val < 4)
+                {
+                    if (val >= 3)
+                    {
+                        WindDirection[i, j] = new Vector2((4.0f - val), 1.0f);
+                    }
+                    else
+                    {
+                        WindDirection[i, j] = new Vector2(1.0f, val - 2.0f);
+                    }
+                }
+                else if (val >= 4 && val < 6)
+                {
+                    if (val >= 5)
+                    {
+                        WindDirection[i, j] = new Vector2(-1.0f, (val - 6.0f));
+                    }
+                    else
+                    {
+                        WindDirection[i, j] = new Vector2((val - 4.0f) * -1.0f, -1.0f);
+                    }
+                }
+                else if (val >= 6 && val < 8)
+                {
+                    if (val >= 7)
+                    {
+                        WindDirection[i, j] = new Vector2(val - 8.0f, 1.0f);
+                    }
+                    else
+                    {
+                        WindDirection[i, j] = new Vector2(-1.0f, (val - 6.0f));
+                    }
+                }
+                else if (val >= 8 && val < 10)
+                {
+                    if (val >= 9)
+                    {
+                        WindDirection[i, j] = new Vector2(1.0f, (10.0f - val) * -1.0f);
+                    }
+                    else
+                    {
+                        WindDirection[i, j] = new Vector2((val - 8.0f), -1.0f);
+                    }
+                }
+                else if (val >= 10 && val <= 12)
+                {
+                    if (val >= 11)
+                    {
+                        WindDirection[i, j] = new Vector2((val - 12.0f), 1.0f);
+                    }
+                    else
+                    {
+                        WindDirection[i, j] = new Vector2(-1.0f, (val - 10.0f));
+                    }
                 }
             }
         }
-        //tex.Apply();
-        //System.IO.File.WriteAllBytes(this.gameObject.name + ".png", tex.EncodeToPNG());
-
+        for (int i = -MaxWindSpeed; i < RainCalcMap.Width - MaxWindSpeed; i++)
+        {
+            for (int j = -MaxWindSpeed; j < RainCalcMap.Height - MaxWindSpeed; j++)
+            {
+                if (RainCalcMap[i + MaxWindSpeed, j + MaxWindSpeed] <= 0f)
+                {
+                    Bresenham(i, i + (int)(WindDirection[j + MaxWindSpeed, i + MaxWindSpeed].x * MaxWindSpeed), j, j + (int)(WindDirection[j + MaxWindSpeed, i + MaxWindSpeed].y * MaxWindSpeed));
+                }
+            }
+        }
+        //TODO: Remove the rain1 and rain2 textures from the game!
+        rain1 = new Texture2D(128, 128);
         //Smoothen(ref RainShadow);
         for (int i = 0; i < ThisTerain.terrainData.alphamapResolution; i++)
         {
@@ -131,20 +192,27 @@ public class Chunk : MonoBehaviour
             {
 				try
 				{
-                    biomes[i, j] = DataBaseHandler.DataBase.BiomeDiagram[Mathf.RoundToInt((((temperature[i, j] * 0.5f) + 0.5f) + (CosGradient(i + (yOffset * (float)resolution), (float)resolution, 0.5f) * 0.5f) + 0.5f) / 2), Mathf.RoundToInt(((RainShadow[j, i] * 0.5f) + 0.5f))];
+                    if (rainfall[i, j] <= 0)
+                    {
+                        rain1.SetPixel(j, i, Color.white);
+                    }
+                    biomes[i, j] = DataBaseHandler.DataBase.BiomeDiagram[Mathf.RoundToInt((((heightMap[i, j] * 0.5f) + 0.5f) + (CosGradient(i + (yOffset * (float)(resolution)), (float)(resolution), 0.5f) * 0.5f) + 0.5f) / 2), Mathf.RoundToInt((RainShadow[i, j] + ((rainfall[i, j] * 0.5f) + 0.5f) / 2) * 2)];
+
 				}
 				catch(Exception ex)
 				{
-				    //Console.WriteLine(ex.ToString() + fi + ";" + fj + ";" + i + ";" + j);
 				}
 			}
 		}
+        rain1.Apply();
+        System.IO.File.WriteAllBytes(this.gameObject.name + ".png", rain1.EncodeToPNG());
 
         return biomes;
     }
 
     void Bresenham(int x0, int x1, int y0, int y1)
     {
+        //TODO: Add smooth Value curves - ie  the value getting smaller and smaller per point it's getting away from the original one.
         int sx = 0;
         int sy = 0;
         int dx = Mathf.Abs(x1 - x0);
@@ -158,33 +226,8 @@ public class Chunk : MonoBehaviour
         {
             if ((y0 >= 0 && y0 < RainShadow.GetLength(1)) && (x0 >= 0 && x0 < RainShadow.GetLength(0)))
             {
-                RainShadow[x0, y0] = 1.0f;
+                RainShadow[y0, x0] = 1.0f;
             }
-            //else
-            //{
-            //    if (y0 < 0)
-            //    {
-            //        y0 = RainShadow.GetLength(1) - 1;
-            //        bresenhamvalues[0].Add(new BresenhamValues(x0, x1, y0, y1, sx, sy, dx, dy, err));
-            //    }
-            //    if (x0 < 0)
-            //    {
-            //        x0 = RainShadow.GetLength(0) - 1;
-            //        bresenhamvalues[2].Add(new BresenhamValues(x0, x1, y0, y1, sx, sy, dx, dy, err));
-            //    }
-
-            //    if (y0 >= RainShadow.GetLength(1))
-            //    {
-            //        y0 = 0;
-            //        bresenhamvalues[1].Add(new BresenhamValues(x0, x1, y0, y1, sx, sy, dx, dy, err));
-            //    }
-            //    if (x0 >= RainShadow.GetLength(0))
-            //    {
-            //        x0 = 0;
-            //        bresenhamvalues[3].Add(new BresenhamValues(x0, x1, y0, y1, sx, sy, dx, dy, err));
-            //    }
-            //    return;
-            //}
             if ((x0 == x1) && (y0 == y1)) loop = false;
             int e2 = 2 * err;
             if (e2 > -dy)
@@ -200,47 +243,6 @@ public class Chunk : MonoBehaviour
         }
     }
 
-    void Bresenham(int x0, int x1, int y0, int y1, int sx, int sy, int dx, int dy, int err)
-    {
-        bool loop = true;
-        while (loop)
-        {
-            if ((y0 >= 0 && y0 < RainShadow.GetLength(1)) && (x0 >= 0 && x0 < RainShadow.GetLength(0)))
-            {
-                RainShadow[x0, y0] = 1.0f;
-            }
-            else
-            {
-                if (y0 < 0)
-                {
-                }
-                if (x0 < 0)
-                {
-                }
-
-                if (y0 >= RainShadow.GetLength(1))
-                {
-                }
-                if (x0 >= RainShadow.GetLength(0))
-                {
-                }
-                return;
-            }
-
-            if ((x0 == x1) && (y0 == y1)) loop = false;
-            int e2 = 2 * err;
-            if (e2 > -dy)
-            {
-                err = err - dy;
-                x0 = x0 + sx;
-            }
-            if (e2 < dx)
-            {
-                err = err + dx;
-                y0 = y0 + sy;
-            }
-        }
-    }
     //TODO Find a Better smooth algorithm.
     public void Smoothen(ref float[,] Heights)
     {
@@ -278,9 +280,9 @@ public class Chunk : MonoBehaviour
         
         float[, ,] amap = new float[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.splatPrototypes.Length];
 
-        for (int hY = 0; hY < ThisTerain.terrainData.alphamapResolution; hY++)
+        for (int hX = 0; hX < ThisTerain.terrainData.alphamapResolution; hX++)
         {
-            for (int hX = 0; hX < ThisTerain.terrainData.alphamapResolution; hX++)
+            for (int hY = 0; hY < ThisTerain.terrainData.alphamapResolution; hY++)
             {
                 amap[hX, hY, (int)Biomes[hX, hY]] = 1;
             }
@@ -288,54 +290,12 @@ public class Chunk : MonoBehaviour
         ThisTerain.terrainData.SetAlphamaps(0, 0, amap);
     }
 
-    Chunk GetNeighbor(Direction dir)
+    void OnGUI()
     {
-        switch (dir)
-        {
-            case Direction.North:
-                return ChunkLoader.chunkloader.GetChunkAtChunkLocation((int)xOffset, (int)yOffset + 1);
-            case Direction.South:
-                return ChunkLoader.chunkloader.GetChunkAtChunkLocation((int)xOffset, (int)yOffset - 1);
-            case Direction.West:
-                return ChunkLoader.chunkloader.GetChunkAtChunkLocation((int)xOffset - 1, (int)yOffset + 1);
-            case Direction.East:
-                return ChunkLoader.chunkloader.GetChunkAtChunkLocation((int)xOffset + 1, (int)yOffset);
-            default:
-                return null;
-        }
-    }
-
-    public struct NeightborChunks
-    {
-        public Chunk North;
-        public Chunk South;
-        public Chunk West;
-        public Chunk East;
-
-        //public NeightborChunks(Chunk n, Chunk s, Chunk w, Chunk e)
+        //if (this.gameObject.name == "Chunk[0;-2]")
         //{
-        //    North = n;
-        //    South = s;
-        //    West = w;
-        //    East = e;
+        GUI.DrawTexture(new Rect((Screen.width / 4) + (128 * xOffset), (Screen.height / 2) - (128 * yOffset), (128), (128)), rain1);
+            //GUI.DrawTexture(new Rect(128 + 10, 0, 128, 128 + 50), rain2);
         //}
-    }
-
-    public struct BresenhamValues
-    {
-        int x0; int x1; int y0; int y1; int sx; int sy; int dx; int dy; int err;
-
-        public BresenhamValues(int x0, int x1, int y0, int y1, int sx, int sy, int dx, int dy, int err)
-        {
-            this.x0 = x0;
-            this.x1 = x1;
-            this.y0 = y0;
-            this.y1 = y1;
-            this.sx = sx;
-            this.sy = sy;
-            this.dx = dx;
-            this.dy = dy;
-            this.err = err; ;
-        }
     }
 }

@@ -36,7 +36,7 @@ public class ChunkLoader : MonoBehaviour
                 go.transform.position = new Vector3(((((LoadDistance - 1) / 2) - LoadDistance) + j + 1) * ChunkSize, 0, (((LoadDistance - 1) / 2 - LoadDistance) + i + 1) * ChunkSize);
                 go.name = "Chunk" + "[" + (j - Center) + ";" + (i - Center) + "]";
                 lgo.Add(go);
-                go.GetComponent<Chunk>().Starter();
+                go.GetComponent<Chunk>().Generate();
             }
             Chunks.Add(lgo);
         }
@@ -134,7 +134,7 @@ public class ChunkLoader : MonoBehaviour
             go.AddComponent<Chunk>();
             go.name = go.name + "[" + go.transform.position.x / ChunkSize + ";" + go.transform.position.z / ChunkSize + "]";
             lgo.Add(go);
-            go.GetComponent<Chunk>().Starter();
+            go.GetComponent<Chunk>().Generate();
             c += ChunkSize;
         }
 
@@ -189,7 +189,7 @@ public class ChunkLoader : MonoBehaviour
             go.AddComponent<Chunk>();
             go.name = go.name + "[" + go.transform.position.x / ChunkSize + ";" + go.transform.position.z / ChunkSize + "]";
             lgo.Add(go);
-            go.GetComponent<Chunk>().Starter();
+            go.GetComponent<Chunk>().Generate();
             c += ChunkSize;
         }
         Chunks.Insert(0, lgo);
@@ -240,7 +240,7 @@ public class ChunkLoader : MonoBehaviour
             go.transform.position = new Vector3(vec.x + ChunkSize, 0, vec.z + c);
             go.AddComponent<Chunk>();
             go.name = go.name + "[" + go.transform.position.x / ChunkSize + ";" + go.transform.position.z / ChunkSize + "]";
-            go.GetComponent<Chunk>().Starter();
+            go.GetComponent<Chunk>().Generate();
             lgo.Add(go);
             c += ChunkSize;
         }
@@ -292,7 +292,7 @@ public class ChunkLoader : MonoBehaviour
             go.transform.position = new Vector3(vec.x - ChunkSize, 0, vec.z + c);
             go.AddComponent<Chunk>();
             go.name = go.name + "[" + go.transform.position.x / ChunkSize + ";" + go.transform.position.z / ChunkSize + "]";
-            go.GetComponent<Chunk>().Starter();
+            go.GetComponent<Chunk>().Generate();
             lgo.Insert(0, go);
             c += ChunkSize;
         }
@@ -382,7 +382,6 @@ public class ChunkLoader : MonoBehaviour
     {
         for (int i = 0; i < Chunks.Count; i++)
         {
-            //TODO: Fix this copy pasta
             if (i == 0)
             {
                 Chunks[i][Chunks.Count - 1].GetComponent<Terrain>().SetNeighbors(Chunks[i][Chunks.Count - 2].GetComponent<Terrain>(), Chunks[i + 1][Chunks.Count - 1].GetComponent<Terrain>(), null, null);
@@ -409,7 +408,6 @@ public class ChunkLoader : MonoBehaviour
     {
         for (int i = 0; i < Chunks.Count; i++)
         {
-            //TODO: Fix this copy pasta
             if (i == 0)
             {
                 Chunks[i][1].GetComponent<Terrain>().SetNeighbors(null, Chunks[i + 1][1].GetComponent<Terrain>(), Chunks[i][2].GetComponent<Terrain>(), null);
