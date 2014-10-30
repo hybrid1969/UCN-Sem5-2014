@@ -45,24 +45,13 @@ namespace LibNoise.Generator
         /// <returns></returns>
         public override double GetValue(double x, double y, double z)
         {
-            if (Altitude)
-            {
-                z *= this.m_frequency;
-                double dfc = Math.Sqrt(z * z);
-                double dfss = dfc - Math.Floor(dfc);
-                double dfls = 1.0 - dfss;
-                double nd = Math.Min(dfss, dfls);
-                return 1.0 - (nd * 4.0);
-            }
-            else
-            {
-                x *= this.m_frequency;
-                double dfc = Math.Sqrt(x * x);
-                double dfss = dfc - Math.Floor(dfc);
-                double dfls = 1.0 - dfss;
-                double nd = Math.Min(dfss, dfls);
-                return 1.0 - (nd * 4.0);
-            }
+            z *= this.m_frequency;
+            x *= this.m_frequency;
+            double dfc = z * z + x * x;
+            double dfss = dfc - Math.Floor(dfc);
+            double dfls = 1.0 - dfss;
+            double nd = Math.Min(dfss, dfls);
+            return 1.0 - (dfc * 2.0);
         }
     }
 }

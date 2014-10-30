@@ -57,6 +57,7 @@ public class TEAbout: TEGroup
 		GUILayout.EndHorizontal();
 		GUILayout.Space(4f);
 		GUILayout.EndVertical();
+        
 	}
     public override void Generate(GameObject go){}
 	public override void sceneEvents(SceneView sceneview){}
@@ -879,7 +880,7 @@ public class TENoiseLab : TEGroup
     public static float[] noiseFuncMax = new float[20];
     public static int teNoiseChanIndex = 0;
     public static int[] teNoiseChanTypeIndex = new int[20];
-	public static string[] teFunctionTypes = new string[18] {"Add","Subtract","Multiply","Min","Max","Blend","Clamp","Power","Curve","Terrace","Abs","Exponent","Invert","ScaleBias","Turbulence","Select","TEWarp","WindexWarp"};
+	public static string[] teFunctionTypes = new string[19] {"Add","Subtract","Multiply","Min","Max","Blend","Clamp","Power","Curve","Terrace","Abs","Exponent","Invert","ScaleBias","Turbulence","Select","TEWarp","WindexWarp","Mask"};
     public static string[] teNoiseChannels = new string[20] {"Channel 0","Channel 1","Channel 2","Channel 3","Channel 4","Channel 5","Channel 6","Channel 7","Channel 8","Channel 9","Channel 10","Channel 11","Channel 12","Channel 13","Channel 14","Channel 15","Channel 16","Channel 17","Channel 18","Channel 19"};
     public static string[] teNoiseChannelTypes = new string[3] { "(none)", "Generator", "Function" };
     public static string[] teNoiseTypes = new string[8] { "Perlin", "Billow", "Ridged", "Voronoi" , "fBm", "HeterogeneousMultiFractal", "HybridMultiFractal", "LinearGradientNoise"};
@@ -1070,7 +1071,7 @@ public class TENoiseLab : TEGroup
 				falloff[teNoiseChanIndex] = (double)teUI.floatSlider("Falloff:",(float)falloff[teNoiseChanIndex],0.0f,1.0f);
 				if(tempDouble!=noiseFuncMin[teNoiseChanIndex]){previewRedrawTime = (int) EditorApplication.timeSinceStartup+1;}			
 			}
-            if(teFunctionTypeIndex[teNoiseChanIndex]==6||teFunctionTypeIndex[teNoiseChanIndex] == 15)
+            if (teFunctionTypeIndex[teNoiseChanIndex] == 6 || teFunctionTypeIndex[teNoiseChanIndex] == 15 || teFunctionTypeIndex[teNoiseChanIndex] == 18)
 			{
 				GUILayout.BeginHorizontal();
 				GUILayout.Label ("Limits", GUILayout.Width(80));
@@ -1292,6 +1293,7 @@ public class TENoiseLab : TEGroup
 					moduleBase[channelId] = tmpTerrace;
 				}
 			}
+            if (fIdx == 18) { moduleBase[channelId] = new Mask(moduleBase[srcChannel1Id[channelId]], (double)noiseFuncMin[channelId], (double)noiseFuncMax[channelId]); }
             if (fIdx == 17) { moduleBase[channelId] = new WindexWarp(moduleBase[srcChannel1Id[channelId]]); }
 			if (fIdx == 16) { moduleBase[channelId] = new TEWarp(moduleBase[srcChannel1Id[channelId]]); }
             if (fIdx == 15) { moduleBase[channelId] = new Select((double)noiseFuncMin[channelId], (double)noiseFuncMax[channelId], falloff[channelId], moduleBase[srcChannel1Id[channelId]], moduleBase[srcChannel2Id[channelId]], moduleBase[srcChannel3Id[channelId]]); }
@@ -2687,7 +2689,7 @@ public class TerrainEdge : EditorWindow {
                 }
             }
         }
-		
+        //this.Close();
         // display the gui
 		EditorGUI.DropShadowLabel (new Rect(0, 0, 500, 20),"",EditorStyles.toolbarButton);
 		EditorGUI.DropShadowLabel (new Rect(5, -1, 150, 20),"TerrainEdge "+vers,EditorStyles.miniLabel);

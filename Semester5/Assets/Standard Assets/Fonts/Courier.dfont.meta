@@ -8,7 +8,8 @@ TrueTypeFontImporter:
   characterPadding: 0
   includeFontData: 1
   use2xBehaviour: 1
-  fontNames: []
+  fontNames:
+  - 
   customCharacters: 
   fontRenderingMode: 0
   userData: 

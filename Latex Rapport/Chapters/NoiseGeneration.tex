@@ -9,7 +9,7 @@ Perlin noise is one of the most common used noises in computer graphics and spec
 
 As we have mentioned earlier we will use libnoise for this project and will there by not implement our own perlin noise, however this section should provide the idea about how to implement your own perlin noise, as well as how perlin noise in general works.
 
-Perlin noise is created by adding multiple layers of noise together with different amplitude, the amount between the highest and the lowest peak value, and frequency, how often the value is changed\cite{perlinnoise2}. Values are randomly generated within the amplitude and frequency range as the example in \figref{fig:1DNoise} show. The final result from adding all the layers together will give a smooth noise pattern which then can be used to define low and high values. To demonstrate the process we have 6 layers of noise in \figref{fig:1DNoise}, and when taking the sum of all graphs we end up with a graph shown in \figref{fig:1DNoiseResult}
+Perlin noise is created by adding multiple layers of noise together with different amplitude, the amount between the highest and the lowest peak value, and frequency, how often the value is changed\cite{perlinnoise2}. Values are randomly generated within the amplitude and frequency range as the example in \figref{fig:1DNoise} show. The final result from adding all the layers together will give a smooth noise pattern which then can be used to define low and high values\cite{NoiseMachineMakingNoise}. To demonstrate the process we have 6 layers of noise in \figref{fig:1DNoise}, and when taking the sum of all graphs we end up with a graph shown in \figref{fig:1DNoiseResult}
 
 \begin{figure}[H]
 	\includegraphics[width=0.32\linewidth]{img/noise_a}
@@ -46,7 +46,7 @@ The exact same idea can be adapted to create 2 dimensional noise. In \figref{fig
 
 Perlin noise offers multiple parameters that we can change, to modify the output noise. The first and most important is octaves which defines how many layers of noise should be created to produce the final result. In \figref{fig:1DNoise} and \figref{fig:2DNoise} the octaves is 6, as there is 6 noise maps that is used to generate the final result. We also need a parameter to define our starting frequency, and the frequency multiplier, which is often referred to as persistence. In \figref{fig:1DNoise} we have a persistence of 2 as the frequency is double on each octave and the amplitude halved. In libnoise persistence does however only control the amplitude, and libnoise introduce yet another parameter called lacunarity which in libnoise is used as the frequency multiplier\cite{libnoisePerlin}.
 
-The last thing needed to make perlin noise is an interpolation function. Interpolation is a way of connecting the randomly generated points to each other. The first is linear interpolation, which is demostrated in \figref{fig:1a}, the connections is direct and the result may not be very realistic. Too improve the result even more we could use a cosine interpolation as seen in \figref{fig:1b}. We now have a somewhat realistic curves, but we can improve the curve even more by making a cubic interpolation as shown in \figref{fig:1c}. Cubic interpolation is often used as it provide the most realistic curves between multiple points. The last step is an optional step that can make the output noise slightly more realistic by smoothing the curve so that the peak values get reduced as can be seen in \figref{fig:1d}.
+The last thing needed to make perlin noise is an interpolation function. Interpolation is a way of connecting the randomly generated points to each other. The first is linear interpolation, which is demonstrated in \figref{fig:1a}, the connections is direct and the result may not be very realistic. Too improve the result even more we could use a cosine interpolation as seen in \figref{fig:1b}. We now have a somewhat realistic curves, but we can improve the curve even more by making a cubic interpolation as shown in \figref{fig:1c}. Cubic interpolation is often used as it provide the most realistic curves between multiple points. The last step is an optional step that can make the output noise slightly more realistic by smoothing the curve so that the peak values get reduced as can be seen in \figref{fig:1d}.
 
 
 \begin{figure}[H]
@@ -93,8 +93,125 @@ Example usage of perlin noise, other than for what we already have mentioned, co
 
 \section{Voronoi Diagram}
 
-\section{Fractal Noise}
+Voronoi noise, or more commonly known as voronoi diagram, is a diagram built up by multiple voronoi cells. A Voronoi cell is a region containing all the points that are closer to a specific seed point than to any other seed point\cite{libnoiseVoronoi}. In \figref{fig:Voronoi} we see examples of two voronoi diagrams \figref{fig:2a} being a diagram with low displacement, meaning there will be fewer points, and \figref{fig:2b} have higher displacement and there by creating more seed points.
 
-\section{Rigged Noise}
+There is multiple algorithms for generating voronoi diagrams, however one of the fastest is fortune's algorithm, made by Steven Fortune for his paper "A sweepline algorithm for Voronoi diagrams"\cite{VoronoiSweepLine}. In our case we use the libnoise libary for noise generation and libnoise does not state which algorithm they are using for voronoi diagrams.
+
+\begin{figure}[H]
+	\begin{minipage}[b]{.48\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/VoronoiDiagramSmall}
+		\subcaption{Low displacement voronoi diagram.}
+		\label{fig:2a}
+	\end{minipage}
+	\begin{minipage}[b]{.48\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/VoronoiDiagramBig}
+		\subcaption{High displacement voronoi diagram.}
+		\label{fig:2b}
+	\end{minipage}
+		\centering
+		\caption{The images shows 2 different displacements of a voronoi diagram.}
+		\label{fig:Voronoi}
+\end{figure}
+
+There is multiple ways voronoi diagrams can be used in games, and one way of using it in procedural content generation could be to use voronoi diagrams to divide areas into regions, states, biomes, or territories. If we look at \figref{fig:Voronoi} each voronoi cell, or individual color, serves as an individual region. An other usage seen in 3D and games are shattering effects. In \figref{fig:VoronoiShatering} we seen an example of an voronoi shattering on a 3D object using the larmor-physx\cite{larmor-physx} plugin.
+
+\begin{figure}[H]
+	\begin{minipage}[b]{.49\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/VoronoiShatter1}
+		\subcaption{A 3D model of a dragon figuette before any voronoi alterations.}
+		\label{fig:3a}
+	\end{minipage}
+	\begin{minipage}[b]{.49\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/VoronoiShatter2}
+		\subcaption{The same dragon as in \figref{fig:3a} with voronoi shattering.}
+		\label{fig:3b}
+	\end{minipage}
+	\centering
+	\caption{The image show a 3D figure being shattered using voronoi diagrams to determine the shatter points.}
+	\label{fig:VoronoiShatering}
+\end{figure}
+
+Voronoi diagrams have many other usages which includes everything from Archeology to Zoology which is described in details at\cite{VoronoiDiagrams:Applications}. We will not go into much details about unrelated usages of voronoi diagrams, however some of them could possibly be adapted upon in games. 
+
+It should also be mentioned that voronoi diagrams should not be confused with it's almost identical noise called Worley noise. Worley noise was made by Steven Worley for his paper "A Cellular Texture Basis Function" \cite{worley} and it is generated in a similar way to voronoi, but rather than creating a region from all points closest to a seed point, it creates a gradient color shift where the closer to a seed point the higher or lower the value as demonstrated in \figref{fig:worleynoise}. libnoise does have a similar, but not exact, way of generating voronoi maps by having the seed point be a lowest value in a region.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\linewidth]{img/worley_noise}
+	\caption{The images shows an example of Worley noise.}
+	\label{fig:worleynoise}
+\end{figure}
+
+
+\section{Billow Noise and Ridged Noise}
+\label{brnoise}
+Billow noise and Ridged noise, or RidgedMultiFractual Noise, is two other noises that is interesting for procedural content generation. Both noises looks very similar to each other as can be seen in \figref{fig:BillowRidged}. Both noises are heavily based on perlin noise, and billow is almost identical to perlin noise with the one exception the each octave is modified by an absolute value\cite{libnoiseBillow}\cite{NoiseMachineMakingNoise}. Billow noise is a great noise to use for creating for instance cloud systems.
+
+Ridged noise is also based on perlin noise and is also generated almost the same way as perlin noise, however like billow noise ridged noise's octaves are modified by an absolute value\cite{NoiseMachineMakingNoise}, but also however the persistence parameter is left out as it is based on the previously generated octaves\cite{libnoiseRidged}. Ridged noise have different usages, one of them is using is to generate craggy mountains or rivers. Another interesting usage is to generate cave like structures which especially is using in voxel engines with procedural content generation eg. Minecraft.
+
+\begin{figure}[H]
+	\begin{minipage}[b]{.49\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/Billow}
+		\subcaption{Billow Noise}
+		\label{fig:4a}
+	\end{minipage}
+	\begin{minipage}[b]{.49\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/Ridged}
+		\subcaption{Ridged Noise}
+		\label{fig:4b}
+	\end{minipage}
+	\centering
+	\caption{The figure show an example of billow and ridged noise both generated with the exact same parameters, which result in both noise maps almost looks inversed of each other.}
+	\label{fig:BillowRidged}
+\end{figure}
+
 
 \section{Manipulating noise}
+
+Besides generating noise, different operations to modify and combine noises together, is something that is very useful. libnoise already contains multiple operator modules that can add, substitute, multiply, and many others, noises together to create a mathematical combination of 2 noises. We will here look into a few examples of how these operators can be used to modify the noise maps.
+
+A prime example used in real life like procedural generated worlds, is using a heightmap, generated from perlin noise, and a latitude map created from either to decide temperature by adding those two together as we demonstrate in \figref{fig:Temperature} and will be describing more in depth in section \ref{WorldGenerator}.
+
+\begin{figure}[H]
+	\begin{minipage}[b]{.32\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/Perlin}
+		\subcaption{Heightmap generated from perlin noise.\\\\}
+		\label{fig:5a}
+	\end{minipage}
+	\begin{minipage}[b]{.32\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/Latitude}
+		\subcaption{Latitude map generated with cosine or linear gradient.\\}
+		\label{fig:5b}
+	\end{minipage}
+	\begin{minipage}[b]{.32\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/Temperature}
+		\subcaption{The resulting Temperature map by adding \figref{fig:5a} and \figref{fig:5b} together.}
+		\label{fig:5c}
+	\end{minipage}
+	\centering
+	\caption{The figure show an example of adding two noises together in libnoise. The two noises combined results in a temperature map and high points as well as polar areas have lower temperatures.}
+	\label{fig:Temperature}
+\end{figure}
+
+As we mentioned in section \ref{brnoise} ridged noise can be used to generate cave systems. This can be done by decreasing all low values within a range but leave the high numbers unchanged. A way of doing this is to simply take an entirely black mask and add it once or multiple times to achieve what is seen in \figref{fig:Caves}
+
+\begin{figure}[H]
+	\begin{minipage}[b]{.32\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/Ridged}
+		\subcaption{Ridged map generated from Ridged noise. \\\\}
+		\label{fig:6a}
+	\end{minipage}
+	\begin{minipage}[b]{.32\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/BlackMask}
+		\subcaption{A black mask texture used to decrease values lower values.\\}
+		\label{fig:6b}
+	\end{minipage}
+	\begin{minipage}[b]{.32\linewidth}
+		\includegraphics[width=0.95\linewidth]{img/Caves}
+		\subcaption{The resulting cave map after \figref{fig:5b} have been masked twice onto \figref{fig:5a}.}
+		\label{fig:6c}
+	\end{minipage}
+	\centering
+	\caption{The figure show an example on how cave systems in voxel engines can be made by masking a entirely black texture onto a ridged noise map.}
+	\label{fig:Caves}
+\end{figure}

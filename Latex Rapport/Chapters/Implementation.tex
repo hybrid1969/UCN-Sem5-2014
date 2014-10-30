@@ -1,8 +1,81 @@
 \chapter{Implementation}
 
+We have now looked into how systems using procedural content generation can be designed as well as how noise generation works. With this knowledge we can now implement it into unity3D and make our procedural content generator. We will in this chapter look into our project and how we have implemented this. We will also look into whether or not procedural content generation is a way of saving time while making a game, and there by answer some of the questions from chapter \ref{ProblemAnalysis}.
+
+
 \section{Chunk Loader}
 
+As we have talked about in section \ref{WorldGeneration}, it is common for procedural generated world to implement some sort of chunk loader. The chunk loaders job is pretty simple, generate new chunks whenever the player moves towards the end of the world, generate new chunks, so that the player never runs out of area to play on. besides that the chunk loader will remove unused chunks. The chunk loader is there by works as a brain for the world, and decides what to generate.
+
+A code snippet from our chunk loader can be seen in listing \ref{code:ChunkLoaderStart}. We here see the initial generation of the first $X$ numbers of chunks. The process includes defining the load distance, which is default set to 5 but can be increased, where after the initial load process begins. We hold a reference to all the chunks in a list of lists of gameobjects, which is equivalent to a 2D array. As seen on line 3 we instantiate a new list to hold the reference to the chunks we generate. We then go on to the actual generation of the gameobject, add the components needed, place it at its correct location in the world, and name it so that we can easily look it up if needed. Lastly we add the gameobject to our list and tell the chunk to generate.
+
+\begin{lstlisting}[caption = Code snippet from the start method in the ChunkLoader script., label=code:ChunkLoaderStart, language=Csharp]
+for (int i = 0; i < LoadDistance; i++)
+{
+	List<GameObject> lgo = new List<GameObject>();
+	for (int j = 0; j < LoadDistance; j++)
+	{
+		GameObject go = new GameObject();
+		go.AddComponent<Chunk>();
+		go.transform.position = new Vector3(((((LoadDistance - 1) / 2) - LoadDistance) + j + 1) * ChunkSize, 0, (((LoadDistance - 1) / 2 - LoadDistance) + i + 1) * ChunkSize);
+		go.name = "Chunk" + "[" + (j - Center) + ";" + (i - Center) + "]";
+		lgo.Add(go);
+		go.GetComponent<Chunk>().Generate();
+	}
+	Chunks.Add(lgo);
+}
+\end{lstlisting}
+
+Next we need a way of generating chunk at runtime. In Unity3D we use the "Update" method for this. As seen in listing \ref{code:ChunkLoaderUpdate}, we depending on the players location, and the center chunk, add now rows or columns, in a similar way as the first initial chunks are generated. We afterwards removes chunks in the opposite end of the world as where we added the new ones. The delete method(s) can be seen in the "ChunkLoader.cs" file in our project, but what is does is it cleans up the terrain(s), removes the references from the list and destroys the gameobject. If we had a world that could be alternated by the player, we should also there save any changes made so that when the player gets back to that chunk the changes made will still be there. But rather than save the whole chunk, only changes made to the chunk should be saved.
+
+\begin{lstlisting}[caption = The Update() method used to generate new chunks., label=code:ChunkLoaderUpdate, language=Csharp]
+void Update()
+{
+	if (Player.transform.position.z < Chunks[Center - 1][Center].transform.position.z + (ChunkSize / 2))
+	{
+		AddColumnBack();
+		DeleteColumnFront();
+	}
+	if (Player.transform.position.z > Chunks[Center + 1][Center].transform.position.z + (ChunkSize / 2))
+	{
+		AddColumnFront();
+		DeleteColumnBack();
+	}
+	if (Player.transform.position.x < Chunks[Center][Center - 1].transform.position.x + (ChunkSize / 2))
+	{
+		AddRowBack();
+		DeleteRowFront();
+	}
+	if (Player.transform.position.x > Chunks[Center][Center + 1].transform.position.x + (ChunkSize / 2))
+	{
+		AddRowFront();
+		DeleteRowBack();
+	}
+}
+\end{lstlisting}
+
+We want to mention that this system is not the most optimal for a chunk loader, which also can be seen when generating new chunks, as the game freezes. A multi threaded event system would have been a better option, however due to Unity3D's poor multi thread support and the time restriction on this project, we decided to lay our focus on other areas. In section \ref{cha:FutureWork} we will discuss this further and how it could be implemented.
+
+
 \section{World Generator}
+\label{WorldGenerator}
+
+With the chunk loader in place we can now move on to implement the chunks them self. As we mentioned in section \ref{WorldGeneration} we only need to generate the world per chunk, and thanks to the coherent noise functionality in libnoise each chunk should have a almost seamless transition. To be extra sure that the chunks are always seamless we do a terrain stitching, meaning we even out the 2 terrains next to each other, with a terrain stitcher. We could skip the stitching step, but this could in some case lead to holes that the player can fall through. Alternatively we could implement our own terrain class, but for this project we will be using Unity3D's built in terrain API, however we will talk about how we could make our own terrain classes in section \ref{cha:FutureWork}.
+
+We will in this section go over some functionality we have created in our chunk generator to mimic terrain in the real world. Some of the functionality may not be used in our final product, but it's there for future development. Additional we will look at a demo that procedurally generates simple island levels, as we wanted to use this as a way to demonstrate and answer if procedural content generation is better, faster and cheaper than having a dedicated level designer to create the levels for games.
+
+
+\subsection{Island Demo}
+
+\subsection{Biome Map}
+
+\subsection{Height Map}
+
+\subsection{Foliage}
+
+\subsection{Wind Map}
+
+\subsection{Rainshadow Map}
 
 %TODO: Example Listing
 \begin{lstlisting}[caption = The Update() call from the turn manager., label=code:aicall, language=Csharp]

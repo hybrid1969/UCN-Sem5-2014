@@ -146,10 +146,10 @@ class TerrainStitcher {
 	static function stitch(terrain1 : Terrain, terrain2 : Terrain, numSamples : int, domTerrain : int) {
 		// Create Undo point
 		// (must explicitly add the terrainData members as they are seen as separate from the Terrain)
-		var terrainObjs = new Array(EditorUtility.CollectDeepHierarchy([terrain1, terrain2]));
+		//var terrainObjs = new Array(EditorUtility.CollectDeepHierarchy([terrain1, terrain2]));
 		// (must explicitly add the terrainData members as they are seen as separate from the Terrain)
-		terrainObjs = terrainObjs.concat(new Array(EditorUtility.CollectDeepHierarchy([terrain1.terrainData, terrain2.terrainData])));
-		Undo.RegisterUndo(terrainObjs.ToBuiltin(UnityEngine.Object), "Stitch Terrains");
+		//terrainObjs = terrainObjs.concat(new Array(EditorUtility.CollectDeepHierarchy([terrain1.terrainData, terrain2.terrainData])));
+		//Undo.RegisterUndo(terrainObjs.ToBuiltin(UnityEngine.Object), "Stitch Terrains");
 
 		// Find out direction in which they oppose eachother to apply correct translations	
 		var dX = terrain2.transform.position.x - terrain1.transform.position.x;

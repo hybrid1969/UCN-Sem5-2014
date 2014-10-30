@@ -19,7 +19,7 @@
 	<DebugType>full</DebugType>
 	<Optimize>false</Optimize>
 	<OutputPath>Temp\bin\Debug\</OutputPath>
-	<DefineConstants>DEBUG;TRACE;UNITY_4_5_4;UNITY_4_5;UNITY_STANDALONE_WIN;ENABLE_MICROPHONE;ENABLE_TEXTUREID_MAP;ENABLE_UNITYEVENTS;ENABLE_NEW_HIERARCHY ;ENABLE_AUDIO_FMOD;UNITY_STANDALONE;ENABLE_MONO;ENABLE_TERRAIN;ENABLE_SUBSTANCE;ENABLE_GENERICS;INCLUDE_WP8SUPPORT;ENABLE_MOVIES;ENABLE_WWW;ENABLE_IMAGEEFFECTS;INCLUDE_WP_BLUE_SUPPORT;ENABLE_WEBCAM;INCLUDE_METROSUPPORT;RENDER_SOFTWARE_CURSOR;ENABLE_NETWORK;ENABLE_PHYSICS;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_2D_PHYSICS;ENABLE_SHADOWS;ENABLE_AUDIO;ENABLE_NAVMESH_CARVING;ENABLE_DUCK_TYPING;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;ENABLE_PROFILER;UNITY_EDITOR;UNITY_EDITOR_WIN;UNITY_TEAM_LICENSE;UNITY_PRO_LICENSE</DefineConstants>
+	<DefineConstants>DEBUG;TRACE;UNITY_4_5_4;UNITY_4_5;UNITY_WEBPLAYER;WEBPLUG;ENABLE_MICROPHONE;ENABLE_TEXTUREID_MAP;ENABLE_UNITYEVENTS;ENABLE_NEW_HIERARCHY ;ENABLE_AUDIO_FMOD;ENABLE_MONO;ENABLE_TERRAIN;ENABLE_SUBSTANCE;ENABLE_GENERICS;INCLUDE_WP8SUPPORT;ENABLE_MOVIES;ENABLE_WWW;ENABLE_IMAGEEFFECTS;INCLUDE_WP_BLUE_SUPPORT;ENABLE_WEBCAM;INCLUDE_METROSUPPORT;RENDER_SOFTWARE_CURSOR;ENABLE_NETWORK;ENABLE_PHYSICS;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_2D_PHYSICS;ENABLE_SHADOWS;ENABLE_AUDIO;ENABLE_NAVMESH_CARVING;ENABLE_DUCK_TYPING;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;DEVELOPMENT_BUILD;ENABLE_PROFILER;UNITY_EDITOR;UNITY_EDITOR_WIN;UNITY_TEAM_LICENSE;UNITY_PRO_LICENSE</DefineConstants>
 	<ErrorReport>prompt</ErrorReport>
 	<WarningLevel>4</WarningLevel>
 	<NoWarn>0169</NoWarn>
@@ -46,16 +46,28 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Biome.cs" />
-     <Compile Include="Assets\ChunkLoader.cs" />
      <Compile Include="Assets\DataBaseHandler.cs" />
-     <Compile Include="Assets\Direction.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\Arctic.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\Biome.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\BorealForest.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\Desert.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\Forest.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\Prairie.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\RainForest.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\Savanna.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\Taiga.cs" />
+     <Compile Include="Assets\LevelGenerator\Biomes\Tundra.cs" />
+     <Compile Include="Assets\LevelGenerator\CameraRotator.cs" />
      <Compile Include="Assets\LevelGenerator\Chunk.cs" />
+     <Compile Include="Assets\LevelGenerator\ChunkLoader.cs" />
      <Compile Include="Assets\LevelGenerator\HeightMap.cs" />
+     <Compile Include="Assets\LevelGenerator\IslandGenerator.cs" />
+     <Compile Include="Assets\LevelGenerator\NoiseHelper.cs" />
      <Compile Include="Assets\LevelGenerator\TerrainTools.cs" />
      <Compile Include="Assets\Resources\LibNoise\Generator\Billow.cs" />
      <Compile Include="Assets\Resources\LibNoise\Generator\BrownianMotion.cs" />
      <Compile Include="Assets\Resources\LibNoise\Generator\Checker.cs" />
+     <Compile Include="Assets\Resources\LibNoise\Generator\CircleMask.cs" />
      <Compile Include="Assets\Resources\LibNoise\Generator\Const.cs" />
      <Compile Include="Assets\Resources\LibNoise\Generator\Cylinders.cs" />
      <Compile Include="Assets\Resources\LibNoise\Generator\HeterogeneousMultiFractal.cs" />
@@ -77,6 +89,7 @@
      <Compile Include="Assets\Resources\LibNoise\Operator\Displace.cs" />
      <Compile Include="Assets\Resources\LibNoise\Operator\Exponent.cs" />
      <Compile Include="Assets\Resources\LibNoise\Operator\Invert.cs" />
+     <Compile Include="Assets\Resources\LibNoise\Operator\Mask.cs" />
      <Compile Include="Assets\Resources\LibNoise\Operator\Max.cs" />
      <Compile Include="Assets\Resources\LibNoise\Operator\Min.cs" />
      <Compile Include="Assets\Resources\LibNoise\Operator\Multiply.cs" />
@@ -91,17 +104,19 @@
      <Compile Include="Assets\Resources\LibNoise\Operator\Translate.cs" />
      <Compile Include="Assets\Resources\LibNoise\Operator\Turbulence.cs" />
      <Compile Include="Assets\Resources\LibNoise\Operator\WindexWarp.cs" />
+     <Compile Include="Assets\Resources\LibNoise\Translator\BiomeTranslator.cs" />
      <Compile Include="Assets\Resources\LibNoise\Utils.cs" />
-     <Compile Include="Assets\Resources\TerEdge\teFunc.cs" />
-     <Compile Include="Assets\Resources\TerEdge\teMap.cs" />
-     <Compile Include="Assets\Resources\TerEdge\teShaders.cs" />
-     <Compile Include="Assets\Resources\TerEdge\teUI.cs" />
-     <Compile Include="Assets\SimplexNoise.cs" />
      <None Include="Assets\Standard Assets\TerrainStitcher\Changelog.txt" />
+     <None Include="Assets\Standard Assets\Projectors\Sources\Shaders\Projector Multiply.shader" />
      <None Include="Assets\Resources\LibNoise\COPYING.txt" />
+     <None Include="Assets\Standard Assets\Water (Pro Only)\Water4\Sources\Shaders\FX-SimpleWater4.shader" />
      <None Include="Assets\Standard Assets\TerrainStitcher\Readme.txt" />
+     <None Include="Assets\Standard Assets\Water (Basic)\Sources\Shaders\FX-Water Simple.shader" />
+     <None Include="Assets\Standard Assets\Water (Pro Only)\Sources\Shaders\FX-Water.shader" />
      <None Include="Assets\Resources\LibNoise\COPYING.LESSER.txt" />
      <None Include="Assets\Standard Assets\TerrainStitcher\License.txt" />
+     <None Include="Assets\Standard Assets\Water (Pro Only)\Water4\Sources\Shaders\WaterInclude.cginc" />
+     <None Include="Assets\Standard Assets\Water (Pro Only)\Water4\Sources\Shaders\FX-Water4.shader" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">

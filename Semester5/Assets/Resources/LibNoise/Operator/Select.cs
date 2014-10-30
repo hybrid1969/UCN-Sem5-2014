@@ -155,11 +155,11 @@ namespace LibNoise.Operator
             if (_fallOff > 0.0)
             {
                 double a;
-                if (cv < (_min - _fallOff))
+                if (cv <= (_min - _fallOff))
                 {
                     return Modules[0].GetValue(x, y, z);
                 }
-                if (cv < (_min + _fallOff))
+                if (cv <= (_min + _fallOff))
                 {
                     var lc = (_min - _fallOff);
                     var uc = (_min + _fallOff);
@@ -167,11 +167,11 @@ namespace LibNoise.Operator
                     return Utils.InterpolateLinear(Modules[0].GetValue(x, y, z),
                         Modules[1].GetValue(x, y, z), a);
                 }
-                if (cv < (_max - _fallOff))
+                if (cv <= (_max - _fallOff))
                 {
                     return Modules[1].GetValue(x, y, z);
                 }
-                if (cv < (_max + _fallOff))
+                if (cv <= (_max + _fallOff))
                 {
                     var lc = (_max - _fallOff);
                     var uc = (_max + _fallOff);
@@ -181,7 +181,7 @@ namespace LibNoise.Operator
                 }
                 return Modules[0].GetValue(x, y, z);
             }
-            if (cv < _min || cv > _max)
+            if (cv <= _min || cv >= _max)
             {
                 return Modules[0].GetValue(x, y, z);
             }

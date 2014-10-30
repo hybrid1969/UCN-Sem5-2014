@@ -339,6 +339,67 @@ namespace LibNoise
         }
 
         /// <summary>
+        /// Generates a non-seamless planar projection of the noise map.
+        /// </summary>
+        /// <param name="left">The clip region to the left.</param>
+        /// <param name="right">The clip region to the right.</param>
+        /// <param name="top">The clip region to the top.</param>
+        /// <param name="bottom">The clip region to the bottom.</param>
+        /// <param name="isSeamless">Indicates whether the resulting noise map should be seamless.</param>
+        public System.Collections.IEnumerator GeneratePlanarCoRoutine(double left, double right, double top, double bottom, bool isSeamless = true)
+        {
+            if (right <= left || bottom <= top)
+            {
+                throw new ArgumentException("Invalid right/left or bottom/top combination");
+            }
+            if (_generator == null)
+            {
+                throw new ArgumentNullException("Generator is null");
+            }
+            var xe = right - left;
+            var ze = bottom - top;
+            var xd = xe / ((double)_width - _ucBorder);
+            var zd = ze / ((double)_height - _ucBorder);
+            var xc = left;
+            for (var x = 0; x < _ucWidth; x++)
+            {
+                if ((x % 4) == 0)
+                {
+                    yield return new WaitForEndOfFrame();
+                }
+                var zc = top;
+                for (var y = 0; y < _ucHeight; y++)
+                {
+                    float fv;
+                    if (isSeamless)
+                    {
+                        fv = (float)GeneratePlanar(xc, zc);
+                    }
+                    else
+                    {
+                        var swv = GeneratePlanar(xc, zc);
+                        var sev = GeneratePlanar(xc + xe, zc);
+                        var nwv = GeneratePlanar(xc, zc + ze);
+                        var nev = GeneratePlanar(xc + xe, zc + ze);
+                        var xb = 1.0 - ((xc - left) / xe);
+                        var zb = 1.0 - ((zc - top) / ze);
+                        var z0 = Utils.InterpolateLinear(swv, sev, xb);
+                        var z1 = Utils.InterpolateLinear(nwv, nev, xb);
+                        fv = (float)Utils.InterpolateLinear(z0, z1, zb);
+                    }
+                    _ucData[x, y] = fv;
+                    if (x >= _ucBorder && y >= _ucBorder && x < _width + _ucBorder &&
+                        y < _height + _ucBorder)
+                    {
+                        _data[x - _ucBorder, y - _ucBorder] = fv; // Cropped data
+                    }
+                    zc += zd;
+                }
+                xc += xd;
+            }
+        }
+
+        /// <summary>
         /// Generates a cylindrical projection of a point in the noise map.
         /// </summary>
         /// <param name="angle">The angle of the point.</param>

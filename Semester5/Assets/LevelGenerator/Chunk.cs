@@ -1,18 +1,22 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LibNoise;
 using LibNoise.Operator;
 using LibNoise.Generator;
 
 public class Chunk : MonoBehaviour
 {
-    Vector2[,] WindDirection;    
+    Vector2[,] WindDirection;
+    BiomeTypes[,] biomes;
     float[,] RainShadow;
+    float[,] Temperature;
+    float[,] Humidity;
     int MaxWindSpeed = 50;
-    Texture2D rain1;
-    Texture2D rain2;
 
+    NoiseHelper noisehelper;
+    List<BiomeTypes> availblebiomes = new List<BiomeTypes>();
 
     float xOffset
     {
@@ -41,70 +45,77 @@ public class Chunk : MonoBehaviour
     public void Generate()
     {
         SetupTerainData();
+        noisehelper = new NoiseHelper(xOffset, yOffset);
         BiomeTypes[,] Biomes = GenerateBiomes();
-        //GenerateHeightmap(Biomes);
+        noisehelper.SetBiomes(Biomes);
+        noisehelper.SetBounds(new Rect(yOffset, yOffset + 1, xOffset, xOffset + 1));
+        GenerateHeightmap(Biomes);
         GenerateAlphamap(Biomes);
-        
+        ThisTerain.Flush();
     }
 
     void SetupTerainData()
     {
         Terrain terrrain = this.gameObject.AddComponent<Terrain>();
         terrrain.terrainData = new TerrainData();
-        terrrain.terrainData.heightmapResolution = 128;
-        terrrain.terrainData.size = new Vector3(512, 512, 512);
+        terrrain.terrainData.heightmapResolution = DataBaseHandler.HeighMapSize;
+        terrrain.terrainData.size = new Vector3(DataBaseHandler.ChunkSize, DataBaseHandler.ChunkSize * 2, DataBaseHandler.ChunkSize);
         TerrainCollider terrraincollider = this.gameObject.AddComponent<TerrainCollider>();
         terrraincollider.terrainData = terrrain.terrainData;
-        terrrain.terrainData.alphamapResolution = 128;
+        terrrain.terrainData.alphamapResolution = DataBaseHandler.BiomeMapSize;
         terrrain.terrainData.splatPrototypes = DataBaseHandler.DataBase.SplatsPrototypes;
     }
 
-    void GenerateHeightmap(BiomeTypes[,] Biome)
+    void GenerateHeightmap(BiomeTypes[,] biomes)
     {
         int resolution = ThisTerain.terrainData.heightmapResolution;
         float[,] hmap = new float[resolution, resolution];
-        Noise2D FlatNoiseMap = new Noise2D(resolution, resolution, new Perlin(0.25, 1, 0.5, 0, 0, QualityMode.High));
-
-        FlatNoiseMap.GeneratePlanar(yOffset, (yOffset) + (1f / resolution) * (resolution + 1), xOffset, (xOffset) + (1f / resolution) * (resolution + 1));
-
-        for (int hY = 0; hY < resolution; hY++)
+        List <LibNoise.ModuleBase> modules = new List<ModuleBase>();
+        for (int i = 0; i < availblebiomes.Count; i++)
         {
-            for (int hX = 0; hX < resolution; hX++)
+            if (!modules.Contains(Biome.FindBiome(availblebiomes[i]).Generate(noisehelper)))
             {
-                hmap[hX, hY] = (float)((FlatNoiseMap[hX, hY] * 0.5f) + 0.5f);
+                modules.Add(Biome.FindBiome(availblebiomes[i]).Generate(noisehelper));
+            }
+        }
+        
+        for (int i = 1; i < modules.Count; i++)
+        {
+            if (modules[i] != null)
+            {
+                modules[i][0] = modules[i - 1];
+            }
+        }
+        Noise2D heightMap = new Noise2D(resolution, resolution, modules[0]);
+        heightMap.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
+
+        for (int y = 0; y < resolution; y++)
+        {
+            for (int x = 0; x < resolution; x++)
+            {
+                hmap[x, y] = (((heightMap[x, y]) * 0.5f) + 0.5f);// (float)((FlatNoiseMap[x, y] * 0.5f) + 0.5f);
             }
         }
 
         ThisTerain.terrainData.SetHeights(0, 0, hmap);
     }
 
-    BiomeTypes[,] GenerateBiomes()
+    void GenerateTemperature()
     {
-        BiomeTypes[,] biomes = new BiomeTypes[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
+        
+    }
 
-        int resolution = ThisTerain.terrainData.alphamapResolution;
+    void GenerateWind()
+    {
+        Noise2D WindMap = new Noise2D((DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), (DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), new Perlin(0.125, 2, 0.5, 10, 0, QualityMode.High));
+        WindMap.GeneratePlanar(yOffset - ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), (yOffset + 1) + ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), xOffset - ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), (xOffset + 1) + ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize));
 
-        Noise2D heightMap = new Noise2D(resolution, resolution, new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
-        heightMap.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
-
-        Noise2D rainfall = new Noise2D(resolution, resolution, new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
-        rainfall.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
-
-        Noise2D WindMap = new Noise2D((resolution + (MaxWindSpeed * 2)), (resolution + (MaxWindSpeed * 2)), new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
-        WindMap.GeneratePlanar(yOffset - ((double)MaxWindSpeed / (double)resolution), (yOffset + 1) + ((double)MaxWindSpeed / (double)resolution), xOffset - ((double)MaxWindSpeed / (double)resolution), (xOffset + 1) + ((double)MaxWindSpeed / (double)resolution));
-
-        Noise2D RainCalcMap = new Noise2D((resolution + (MaxWindSpeed * 2)), (resolution + (MaxWindSpeed * 2)), new Perlin(0.25, 2, 0.5, 10, 0, QualityMode.High));
-        RainCalcMap.GeneratePlanar(xOffset - ((double)MaxWindSpeed / (double)resolution), (xOffset + 1) + ((double)MaxWindSpeed / (double)resolution), yOffset - ((double)MaxWindSpeed / (double)resolution), (yOffset + 1) + ((double)MaxWindSpeed / (double)resolution));
-
-
-        RainShadow = new float[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
-        WindDirection = new Vector2[(resolution + (MaxWindSpeed * 2)), (resolution + (MaxWindSpeed * 2))];
-        rain2 = new Texture2D(resolution, resolution + 50);
-        for (int i = 0; i < resolution + (MaxWindSpeed * 2); i++)
+        WindDirection = new Vector2[(DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), (DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2))];
+        for (int i = 0; i < DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2); i++)
         {
-            for (int j = 0; j < resolution + (MaxWindSpeed * 2); j++)
+            for (int j = 0; j < DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2); j++)
             {
-                float val = ((((CosGradient((i - 50) + (yOffset * (float)(resolution)), (float)(resolution), 0.25f) * 0.5f) + 0.5f) + (((WindMap[i,j]) * 0.5f) + 0.5f) / 2) * 12.0f);
+                float val = ((((CosGradient((i - 50) + (yOffset * (float)(DataBaseHandler.BiomeMapSize)), (float)(DataBaseHandler.BiomeMapSize), 0.125f) * 0.5f) + 0.5f) + (((WindMap[i, j]) * 0.5f) + 0.5f) / 2) * 12.0f);
                 if (val >= 0 && val < 2)
                 {
                     if (val >= 1)
@@ -173,39 +184,59 @@ public class Chunk : MonoBehaviour
                 }
             }
         }
+    }
+
+    void GeneraRainfall()
+    {
+        RainShadow = new float[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
+
+        Noise2D RainCalcMap = new Noise2D((DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), (DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), new Perlin(0.125, 2, 0.5, 10, 0, QualityMode.High));
+        RainCalcMap.GeneratePlanar(xOffset - ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), (xOffset + 1) + ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), yOffset - ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), (yOffset + 1) + ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize));
+
         for (int i = -MaxWindSpeed; i < RainCalcMap.Width - MaxWindSpeed; i++)
         {
             for (int j = -MaxWindSpeed; j < RainCalcMap.Height - MaxWindSpeed; j++)
             {
-                if (RainCalcMap[i + MaxWindSpeed, j + MaxWindSpeed] <= 0f)
+                if (RainCalcMap[i + MaxWindSpeed, j + MaxWindSpeed] <= 0.5f)
                 {
                     Bresenham(i, i + (int)(WindDirection[j + MaxWindSpeed, i + MaxWindSpeed].x * MaxWindSpeed), j, j + (int)(WindDirection[j + MaxWindSpeed, i + MaxWindSpeed].y * MaxWindSpeed));
                 }
             }
         }
-        //TODO: Remove the rain1 and rain2 textures from the game!
-        rain1 = new Texture2D(128, 128);
+
         //Smoothen(ref RainShadow);
+    }
+
+    BiomeTypes[,] GenerateBiomes()
+    {
+        int resolution = ThisTerain.terrainData.alphamapResolution;
+
+        Noise2D heightMap = new Noise2D(resolution, resolution, new Perlin(0.125, 2, 0.5, 10, 0, QualityMode.High));
+        heightMap.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
+
+        Noise2D rainfall = new Noise2D(resolution, resolution, new Perlin(0.125, 2, 0.5, 10, 4560, QualityMode.High));
+        rainfall.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
+
+        Humidity = new float[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
+        biomes = new BiomeTypes[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
+        Temperature = new float[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
+
         for (int i = 0; i < ThisTerain.terrainData.alphamapResolution; i++)
         {
             for (int j = 0; j < ThisTerain.terrainData.alphamapResolution; j++)
             {
-				try
-				{
-                    if (rainfall[i, j] <= 0)
-                    {
-                        rain1.SetPixel(j, i, Color.white);
-                    }
-                    biomes[i, j] = DataBaseHandler.DataBase.BiomeDiagram[Mathf.RoundToInt((((heightMap[i, j] * 0.5f) + 0.5f) + (CosGradient(i + (yOffset * (float)(resolution)), (float)(resolution), 0.5f) * 0.5f) + 0.5f) / 2), Mathf.RoundToInt((RainShadow[i, j] + ((rainfall[i, j] * 0.5f) + 0.5f) / 2) * 2)];
-
-				}
-				catch(Exception ex)
-				{
-				}
+                Temperature[i, j] = -50.0f + (((((heightMap[i, j] * 0.5f) + 0.5f) + (CosGradient(i + (yOffset * (float)(resolution)), (float)(resolution), 0.25f) * 0.5f) + 0.5f) / 2.0f) * 100.0f);
+                Humidity[i, j] = ((((CosGradient(i + (yOffset * (float)(resolution)), (float)(resolution), 0.25f) * 0.5f) + 0.5f)) * 100.0f) * (((rainfall[i, j] * 0.5f) + 0.5f));
+                //Humidity[i, j] = ((((rainfall[i, j] * 0.5f) + 0.5f)) * 100.0f);// *(((((heightMap[i, j] * 0.75f) + 0.5f) + (CosGradient(i + (yOffset * (float)(resolution)), (float)(resolution), 0.5f) * 0.25f) + 0.5f) / 2.0f));
+                //Old Biome Selector
+                //biomes[i, j] = DataBaseHandler.DataBase.BiomeDiagram[Mathf.RoundToInt((((heightMap[i, j] * 0.5f) + 0.5f) + (CosGradient(i + (yOffset * (float)(resolution)), (float)(resolution), 0.5f) * 0.5f) + 0.5f) / 2), Mathf.RoundToInt((RainShadow[i, j] + ((rainfall[i, j] * 0.5f) + 0.5f) / 2) * 2)];
+                biomes[i, j] = Biome.DecideBiome(Temperature[i, j], Humidity[i, j]);
+                if (!availblebiomes.Contains(biomes[i, j]))
+                {
+                    availblebiomes.Add(biomes[i, j]);
+                }
 			}
 		}
-        rain1.Apply();
-        System.IO.File.WriteAllBytes(this.gameObject.name + ".png", rain1.EncodeToPNG());
 
         return biomes;
     }
@@ -226,7 +257,7 @@ public class Chunk : MonoBehaviour
         {
             if ((y0 >= 0 && y0 < RainShadow.GetLength(1)) && (x0 >= 0 && x0 < RainShadow.GetLength(0)))
             {
-                RainShadow[y0, x0] = 1.0f;
+                RainShadow[y0, x0] += 0.000004f;
             }
             if ((x0 == x1) && (y0 == y1)) loop = false;
             int e2 = 2 * err;
@@ -284,18 +315,9 @@ public class Chunk : MonoBehaviour
         {
             for (int hY = 0; hY < ThisTerain.terrainData.alphamapResolution; hY++)
             {
-                amap[hX, hY, (int)Biomes[hX, hY]] = 1;
+                amap[hX, hY, Biome.FindTexture(Biomes[hX, hY])] = 1;
             }
         }
         ThisTerain.terrainData.SetAlphamaps(0, 0, amap);
-    }
-
-    void OnGUI()
-    {
-        //if (this.gameObject.name == "Chunk[0;-2]")
-        //{
-        GUI.DrawTexture(new Rect((Screen.width / 4) + (128 * xOffset), (Screen.height / 2) - (128 * yOffset), (128), (128)), rain1);
-            //GUI.DrawTexture(new Rect(128 + 10, 0, 128, 128 + 50), rain2);
-        //}
     }
 }
