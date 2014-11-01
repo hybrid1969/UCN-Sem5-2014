@@ -1,13 +1,13 @@
 \chapter{Implementation}
 
-We have now looked into how systems using procedural content generation can be designed as well as how noise generation works. With this knowledge we can now implement it into unity3D and make our procedural content generator. We will in this chapter look into our project and how we have implemented this. We will also look into whether or not procedural content generation is a way of saving time while making a game, and there by answer some of the questions from chapter \ref{ProblemAnalysis}.
+We have now looked into how systems using procedural content generation can be designed as well as how noise generation works. With this knowledge we can now implement it into unity3D and make our procedural content generator. We will in this chapter look into our project and how we have implemented this. %We will also look into whether or not procedural content generation is a way of saving time while making a game, and there by  answer some of the questions from chapter \ref{ProblemAnalysis}.
 
 
 \section{Chunk Loader}
 
 As we have talked about in section \ref{WorldGeneration}, it is common for procedural generated world to implement some sort of chunk loader. The chunk loaders job is pretty simple, generate new chunks whenever the player moves towards the end of the world, generate new chunks, so that the player never runs out of area to play on. besides that the chunk loader will remove unused chunks. The chunk loader is there by works as a brain for the world, and decides what to generate.
 
-A code snippet from our chunk loader can be seen in listing \ref{code:ChunkLoaderStart}. We here see the initial generation of the first $X$ numbers of chunks. The process includes defining the load distance, which is default set to 5 but can be increased, where after the initial load process begins. We hold a reference to all the chunks in a list of lists of gameobjects, which is equivalent to a 2D array. As seen on line 3 we instantiate a new list to hold the reference to the chunks we generate. We then go on to the actual generation of the gameobject, add the components needed, place it at its correct location in the world, and name it so that we can easily look it up if needed. Lastly we add the gameobject to our list and tell the chunk to generate.
+A code snippet from our chunk loader can be seen in Listing \ref{code:ChunkLoaderStart}. We here see the initial generation of the first $X$ numbers of chunks. The process includes defining the load distance, which is default set to 5 but can be increased, where after the initial load process begins. We hold a reference to all the chunks in a list of lists of gameobjects, which is equivalent to a 2D array. As seen on line 3 we instantiate a new list to hold the reference to the chunks we generate. We then go on to the actual generation of the gameobject, add the components needed, place it at its correct location in the world, and name it so that we can easily look it up if needed. Lastly we add the gameobject to our list and tell the chunk to generate.
 
 \begin{lstlisting}[caption = Code snippet from the start method in the ChunkLoader script., label=code:ChunkLoaderStart, language=Csharp]
 for (int i = 0; i < LoadDistance; i++)
@@ -26,7 +26,7 @@ for (int i = 0; i < LoadDistance; i++)
 }
 \end{lstlisting}
 
-Next we need a way of generating chunk at runtime. In Unity3D we use the "Update" method for this. As seen in listing \ref{code:ChunkLoaderUpdate}, we depending on the players location, and the center chunk, add now rows or columns, in a similar way as the first initial chunks are generated. We afterwards removes chunks in the opposite end of the world as where we added the new ones. The delete method(s) can be seen in the "ChunkLoader.cs" file in our project, but what is does is it cleans up the terrain(s), removes the references from the list and destroys the gameobject. If we had a world that could be alternated by the player, we should also there save any changes made so that when the player gets back to that chunk the changes made will still be there. But rather than save the whole chunk, only changes made to the chunk should be saved.
+Next we need a way of generating chunk at runtime. In Unity3D we use the "Update" method for this. As seen in Listing \ref{code:ChunkLoaderUpdate}, we depending on the players location, and the center chunk, add now rows or columns, in a similar way as the first initial chunks are generated. We afterwards removes chunks in the opposite end of the world as where we added the new ones. The delete method(s) can be seen in the "ChunkLoader.cs" file in our project, but what is does is it cleans up the terrain(s), removes the references from the list and destroys the gameobject. If we had a world that could be alternated by the player, we should also there save any changes made so that when the player gets back to that chunk the changes made will still be there. But rather than save the whole chunk, only changes made to the chunk should be saved.
 
 \begin{lstlisting}[caption = The Update() method used to generate new chunks., label=code:ChunkLoaderUpdate, language=Csharp]
 void Update()
@@ -67,16 +67,77 @@ We will in this section go over some functionality we have created in our chunk 
 
 \subsection{Island Demo}
 
+The island demo scene were made as a baseline comparison to hand made level, as comparing an infinite world to a hand made world could be hard. It took roughly 3 hours to implement the base generation functionality, and roughly an other 3 hours of adding textures, foliage, GUI, regeneration and testing, adding up to a total of 6 work hours on the whole script. We then took this demo scene including the image seen in \figref{fig:IslandDemo} to multiple developing forums and ask for rough time and cost estimate to make a scene like this and we got a few replies that we will talk about in chapter \ref{cha:Conclusion}.
+
+\begin{figure}[H]
+	\includegraphics[width=1\linewidth]{img/IslandDemo}
+	\centering
+	\caption{The first generated island that the user are met with when entering the island demo.}
+	\label{fig:IslandDemo}
+\end{figure}
+
+Where the island demo we have made for comparison only took a day to create, the other project that we have our main focus have taken us months to make, however as it will have much more details and features put into it, it would seem that the development time needed is increasing exponentially depending on the feature list and extendability of the system. As can see from the island demo, procedural content generators are capable of generating billions of different outputs, simply by changing one or more input values, as can be done at runtime in the island demo. Some result of the generation may be inappropriate for an actual player to play on, but it truly show off the potentials of procedural content generation, and just how fast a simple generator can be made.
+
+
 \subsection{Biome Map}
 
+To make the world more interesting for the player we have implemented a range of difference biomes. Biomes is like a ecozone, for instance desert, rainforest, tundras to mention a few. We made a biome class where we have base functionality on how the biomes works, and then inherit from there. Each sub class makes is possible for us to define how each biome should be generated and behave. For instance if the world was to generate a tundra we want rough mountainous terrain with very few trees and very little foliage, but a rainforest on the other hand should have many trees and a large a mount of foliage.
+
+The biome map is created from two values, Temperature and humidity. We described in section \ref{NoiseManipulating} how we from combining a gradient mask, which works as a latitude map, with perlin noise create a realistic temperature map that is somewhat similar to how it would be on earth. The humidity map can be a little more tricky to implement and we are there for currently just using a perlin noise map to define humidity. We tried to implement humidity map similar to how it works on earth by using a wind map and create a rainshadow map which we will talk about in section \ref{windmap}, and in section \ref{rainshadowmap}. The reason we took a more simple approach to generating the humidity map was due to the output from the functions generating wind and rainshadow gave us some very weird and unrealistic biome layout and due to the limited time span we decided to focus more on individual biomes.
+
+With the temperature and humidity map in place we can now define our biomes. The way we do this is by implementing a whittaker diagram similar to the one seen in \figref{fig:whittaker}. We can in the whittaker diagram see a biome is depending on temperature and precipitation, also called humidity or rainfall in some context.
+
+\begin{figure}[H]
+	\includegraphics[width=1\linewidth]{img/whittaker}
+	\centering
+	\caption{The figure shows a whittaker diagram which is used to define ecosystem's temperature and precipitation.}
+	\label{fig:whittaker}
+\end{figure}
+
+We decide the biome at a point by looping over each value generated by the noise functions as seen in Listing \ref{code:biomedecider}. We then calculate the temperature so that the temperature will be between -50 and 50. We do the same for humidity, but here we change the value depending and the temperature, as we can see from the whittaker diagram that there is very little precipitation/humidity in cold biomes, and do so that the humidity is between 0 and 100. We then at line 9 decide the biome by calling a helper method that returns a enum with the biome type that matches a given temperature and humidity, which is currently defined by if cases to somewhat match the whittaker diagram. Lastly we add the biomes availble in the chunk to a list, this is done so that we later easily can access the biomes for height map generation.
+
+\begin{lstlisting}[caption = A code snippet from the chunk class in our project., label=code:biomedecider, language=Csharp]
+for (int i = 0; i < ThisTerain.terrainData.alphamapResolution; i++)
+{
+	for (int j = 0; j < ThisTerain.terrainData.alphamapResolution; j++)
+    {
+        Temperature[i, j] = -50.0f + (((((heightMap[i, j] * 0.5f) + 0.5f) + (CosGradient(i + (yOffset * (float)(resolution)), (float)(resolution), 0.25f) * 0.5f) + 0.5f) / 2.0f) * 100.0f);
+        
+        Humidity[i, j] = ((((CosGradient(i + (yOffset * (float)(resolution)), (float)(resolution), 0.25f) * 0.5f) + 0.5f)) * 100.0f) * (((rainfall[i, j] * 0.5f) + 0.5f));
+       
+        biomes[i, j] = Biome.DecideBiome(Temperature[i, j], Humidity[i, j]);
+        
+        if (!availblebiomes.Contains(biomes[i, j]))
+        {
+        	availblebiomes.Add(biomes[i, j]);
+        }	
+	}
+}
+\end{lstlisting}
+
+
 \subsection{Height Map}
+
+Height mas can be generated in different ways. In our island demo the heightmap is generated first and decide the terrain texture depending on height, however we want biomes to determine the height map and have The height map be dependent on the biomes on a single chunk. For instance we want tundra to be rough mountain terrain, but forest should be much more flat. To do this we use the select module included in libnoise. The select module is a noise manipulation module that takes 2 source modules, and one control module. Depending on the control module's value at a certain point, the select module chooses the values from the 2 source modules, for instance if the control value is -1 the value from the first source module is picked, if the value is 1 it would pick the value from source module 2 and if the value is 0 the two source modules will be blended.
+
+We make a tree structure of select modules as seen in \figref{fig:heightmap} to make a smooth transition between biomes. We have created a biome translator that works as a mask on the biome map, so that a biome of a certain type is mapped as 1. We then smoothen the values so that the mask have a smooth transition between values. The top, left most select module seen in \figref{fig:heightmap} is the module that handles the height map for tundra. We map out the tundra and if the with the biome translator that is used as our control module. If the area is not tundra it takes the value from the second select module that again determines if a certain biome is at a certain point, and this tree can go on until every biomes in a chunk have been mapped, but we have a standard noise in the end so that any biomes that somehow should not have been mapped, have a height map generated with standard values.
+
+\begin{figure}[H]
+	\includegraphics[width=1\linewidth]{img/HeightMap}
+	\centering
+	\caption{The figure shows a diagram on how a heightmap cointaining 2 biomes is generated.}
+	\label{fig:heightmap}
+\end{figure}
+
+An alternative way of implementing height maps in a similar way that we tried was to have a single module selecting the values but we ran into some problems with the smoothing of the biome map that would require a larger rewriting of the biome system and generator to fix and it would still work very similar to our current solution. We will try to describe how it could be done in section \ref{cha:FutureWork}.
+
 
 \subsection{Foliage}
 
 \subsection{Wind Map}
-
+\label{windmap}
 \subsection{Rainshadow Map}
-
+\label{rainshadowmap}
 %TODO: Example Listing
 \begin{lstlisting}[caption = The Update() call from the turn manager., label=code:aicall, language=Csharp]
 UnitFSM.FSM.CurrentState = AIWrapper.GetDecision(unit.gameObject, UnitFSM.FSM.CurrentState);

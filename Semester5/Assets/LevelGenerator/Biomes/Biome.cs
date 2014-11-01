@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Linq;
 using LibNoise;
 
 public abstract class Biome
 {
-    public Texture2D Texture;
-    public Texture2D Normal;
-    public BiomeTypes Type;
+    public Texture2D Texture { get; set; }
+    public Texture2D Normal { get; set; }
+    public BiomeTypes Type { get; set; }
+
+    public GameObject[] Grass { get; set; }
+    public GameObject[] Trees { get; set; }
 
     //public float minHeight = 10;
     //public float maxHeight = 10;
@@ -30,6 +32,16 @@ public abstract class Biome
     }
 
     public abstract ModuleBase Generate(NoiseHelper noisehelper);
+
+    public virtual void GenerateGrass()
+    {
+
+    }
+
+    public virtual void GenerateTress()
+    {
+
+    }
 
     public virtual SplatPrototype GetSplatPrototype()
     {

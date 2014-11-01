@@ -46,11 +46,11 @@ public class Chunk : MonoBehaviour
     {
         SetupTerainData();
         noisehelper = new NoiseHelper(xOffset, yOffset);
-        BiomeTypes[,] Biomes = GenerateBiomes();
-        noisehelper.SetBiomes(Biomes);
+        GenerateBiomes();
+        noisehelper.SetBiomes(biomes);
         noisehelper.SetBounds(new Rect(yOffset, yOffset + 1, xOffset, xOffset + 1));
-        GenerateHeightmap(Biomes);
-        GenerateAlphamap(Biomes);
+        GenerateHeightmap(biomes);
+        GenerateAlphamap(biomes);
         ThisTerain.Flush();
     }
 
@@ -207,7 +207,7 @@ public class Chunk : MonoBehaviour
         //Smoothen(ref RainShadow);
     }
 
-    BiomeTypes[,] GenerateBiomes()
+    void GenerateBiomes()
     {
         int resolution = ThisTerain.terrainData.alphamapResolution;
 
@@ -237,8 +237,6 @@ public class Chunk : MonoBehaviour
                 }
 			}
 		}
-
-        return biomes;
     }
 
     void Bresenham(int x0, int x1, int y0, int y1)
