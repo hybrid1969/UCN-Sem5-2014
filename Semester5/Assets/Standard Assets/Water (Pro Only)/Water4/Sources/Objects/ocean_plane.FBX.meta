@@ -8,13 +8,14 @@ ModelImporter:
     2300000: //RootNode
     3300000: //RootNode
     4300000: kraut_plane
+    6400000: //RootNode
     11100000: //RootNode
   materials:
     importMaterials: 1
     materialName: 3
     materialSearch: 1
   animations:
-    legacyGenerateAnimations: 3
+    legacyGenerateAnimations: 4
     bakeSimulation: 0
     optimizeGameObjects: 0
     motionNodeName: 
@@ -30,7 +31,7 @@ ModelImporter:
     lODScreenPercentages: []
     globalScale: 1
     meshCompression: 0
-    addColliders: 0
+    addColliders: 1
     importBlendShapes: 1
     swapUVChannels: 0
     generateSecondaryUV: 0

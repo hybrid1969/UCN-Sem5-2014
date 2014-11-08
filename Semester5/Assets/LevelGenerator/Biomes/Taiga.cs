@@ -1,16 +1,16 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 using LibNoise;
 
 public class Taiga : Biome
 {
-    public Taiga(Texture2D _texture, Texture2D _normal, BiomeTypes _type) 
-        : base (_texture, _normal, _type)
+    public Taiga(Texture2D _texture, Texture2D _normal, BiomeTypes _type, GameObject[] _decoration, int[] _decorationcount)
+        : base(_texture, _normal, _type, _decoration, _decorationcount)
     {
     }
 
     public override ModuleBase Generate(NoiseHelper noisehelper)
     {
-        return noisehelper.GetTundraNoise();
+        return noisehelper.GetTaigaNoise();
     }
 }

@@ -308,7 +308,7 @@ public class TEExpand : TEGroup
 	                teExpandOpts[0] = GUILayout.Toggle(teExpandOpts[0], "NoiseLab");
 	                teExpandOpts[1] = GUILayout.Toggle(teExpandOpts[1], "Textures");
 	                teExpandOpts[2] = GUILayout.Toggle(teExpandOpts[2], "Details");
-	                teExpandOpts[3] = GUILayout.Toggle(teExpandOpts[3], "Trees");
+	                teExpandOpts[3] = GUILayout.Toggle(teExpandOpts[3], "Foliage");
 	                GUILayout.EndVertical();
 	                GUILayout.EndHorizontal();
 	            }
@@ -353,7 +353,7 @@ public class TEExpand : TEGroup
         if (teExpandOpts[0] == true) { EditorUtility.DisplayProgressBar("Expand Terrain", "Generating Heightmap...", 0.5f); TENoiseLab.genIt(terrObj); }
         if (teExpandOpts[1] == true) { EditorUtility.DisplayProgressBar("Expand Terrain", "Generating Textures...", 0.5f); terrainData.splatPrototypes = selTerrainData.splatPrototypes; TETextures.genIt(terrObj); }
         if (teExpandOpts[2] == true) { EditorUtility.DisplayProgressBar("Expand Terrain", "Generating Detail...", 0.5f); terrainData.detailPrototypes = selTerrainData.detailPrototypes; TEDetail.genIt(terrObj); }
-        if (teExpandOpts[3] == true) { EditorUtility.DisplayProgressBar("Expand Terrain", "Generating Trees...", 0.5f); terrainData.treePrototypes = selTerrainData.treePrototypes; TETrees.genIt(terrObj); }
+        if (teExpandOpts[3] == true) { EditorUtility.DisplayProgressBar("Expand Terrain", "Generating Foliage...", 0.5f); terrainData.treePrototypes = selTerrainData.treePrototypes; TETrees.genIt(terrObj); }
         EditorUtility.ClearProgressBar();
 		TerrainEdge.getNeighbors(Selection.activeGameObject);
     }
@@ -376,7 +376,7 @@ public class TEFoliageGroup : TEGroup
 	public int teFoliageProtoIndex;
 	public string[] teFoliageGroupNames = new string[10] {"Group 1","Group 2","Group 3","Group 4","Group 5","Group 6","Group 7","Group 8","Group 9","Group 10"};
 	public string[] teFoliageSlotNames = new string[10] {"Slot 1","Slot 2","Slot 3","Slot 4","Slot 5","Slot 6","Slot 7","Slot 8","Slot 9","Slot 10"};
-	public string[] teFoliageGroupOptions = new string[4] {"(none)","Detail","Textures","Trees"};
+	public string[] teFoliageGroupOptions = new string[4] {"(none)","Detail","Textures","Foliage"};
 	public string[] teFoliageGroupDetailProtoNames = new string[16];
 	public string[] teFoliageGroupTreeProtoNames = new string[16];
 	public string[] teFoliageGroupTextureProtoNames = new string[16];
@@ -523,7 +523,7 @@ public class TEFoliageGroup : TEGroup
 							}
 						}
 						if(param[0]=="3"){
-							// Trees -------------------------------------------------------
+							// Foliage -------------------------------------------------------
 							int pasteregionoffset = teFoliageBrushSize;
 							TreeInstance[] trees = td.treeInstances;
 							TreeInstances = new List<TreeInstance>(go.GetComponent<Terrain>().terrainData.treeInstances);
@@ -666,7 +666,7 @@ public class TEMapInspector : TEGroup
 		int tempInt = mapViewIndex;
 		if(teMapInspectorImage==null){autogen=true;}
 		// Map-Type and Layer Selectors
-		mapViewIndex = teUI.DropDown("Map Type:",mapViewIndex,new string[4]{"Heightmap","Splatmap","Detail","Trees"});
+		mapViewIndex = teUI.DropDown("Map Type:",mapViewIndex,new string[4]{"Heightmap","Splatmap","Detail","Foliage"});
 		if(TerrainEdge.selectedObject){
 			if(TerrainEdge.selectedObject.GetComponent<Terrain>()){
 				TerrainData terdata = TerrainEdge.selectedObject.GetComponent<Terrain>().terrainData;
@@ -1938,7 +1938,7 @@ public class TETools : TEGroup
 	            syncOptions[1] = GUILayout.Toggle(syncOptions[1], "Textures");
 	            GUILayout.EndVertical();
 	            GUILayout.BeginVertical(GUILayout.Width(60));
-	            syncOptions[2] = GUILayout.Toggle(syncOptions[2], "Trees");
+	            syncOptions[2] = GUILayout.Toggle(syncOptions[2], "Foliage");
 	            syncOptions[3] = GUILayout.Toggle(syncOptions[3], "Detail");
 	            GUILayout.EndVertical();
 	            if (GUILayout.Button("Sync", GUILayout.Height(34))){teFunc.doSync(syncOptions[0],syncOptions[1],syncOptions[2],syncOptions[3]);}
@@ -1957,17 +1957,17 @@ public class TETools : TEGroup
 			GUILayout.Label("Fix / Join / Smooth", EditorStyles.miniBoldLabel);
 	        GUILayout.BeginHorizontal();
 	        GUILayout.Label("Distance", GUILayout.Width(100));
-	        blendDist = (int)GUILayout.HorizontalSlider((float)blendDist, 1.0f, (float)32.0f);
+            blendDist = (int)GUILayout.HorizontalSlider((float)blendDist, 1.0f, (float)32.0f, GUILayout.Width(200));
 	        GUILayout.Label(blendDist.ToString() + "  ".Substring(0, 2), EditorStyles.label, GUILayout.Width(40));
 	        GUILayout.EndHorizontal();
 	        GUILayout.BeginHorizontal();
 	        GUILayout.Label("Iterations", GUILayout.Width(100));
-	        blendIterations = (int)GUILayout.HorizontalSlider((float)blendIterations, 1.0f, 20.0f);
+            blendIterations = (int)GUILayout.HorizontalSlider((float)blendIterations, 1.0f, 20.0f, GUILayout.Width(200));
 	        GUILayout.Label(blendIterations.ToString() + "  ".Substring(0, 2), EditorStyles.label, GUILayout.Width(40));
 	        GUILayout.EndHorizontal();
 	        GUILayout.BeginHorizontal();
 	        GUILayout.Label("Smoothing", GUILayout.Width(100));
-	        blendSmooth = (int)GUILayout.HorizontalSlider((float)blendSmooth, 0f, 3.0f);
+            blendSmooth = (int)GUILayout.HorizontalSlider((float)blendSmooth, 0f, 3.0f, GUILayout.Width(200));
 	        GUILayout.Label(blendSmooth.ToString() + "  ".Substring(0, 2), EditorStyles.label, GUILayout.Width(40));
 	        GUILayout.EndHorizontal();
 	
@@ -1994,7 +1994,7 @@ public class TETools : TEGroup
 	        }
 	        if (GUILayout.Button("Full Scene"))
 	        {
-	   			Undo.RegisterUndo(FindObjectsOfType(typeof(Terrain)) as Terrain[],"te:Generate All Terrain Trees"); 
+	   			Undo.RegisterUndo(FindObjectsOfType(typeof(Terrain)) as Terrain[],"te:Generate All Terrain Foliage"); 
 	            Terrain[] terrs = FindObjectsOfType(typeof(Terrain)) as Terrain[];
 	            int terrIndex = 0;
 	            foreach (Terrain terr in terrs)
@@ -2053,9 +2053,9 @@ public class TETools : TEGroup
 
     void fixSeams(GameObject go)
     {
-        blendDist = 128;
-        blendIterations = 20;
-        blendSmooth = 50;
+        //blendDist = 128;
+        //blendIterations = 20;
+        //blendSmooth = 50;
         TerrainEdge.tileW = null; TerrainEdge.tileE = null; TerrainEdge.tileS = null; TerrainEdge.tileN = null;
         TerrainEdge.tileNW = null; TerrainEdge.tileNE = null; TerrainEdge.tileSW = null; TerrainEdge.tileSE = null;
         int hwidth = go.GetComponent<Terrain>().terrainData.heightmapResolution;
@@ -2259,7 +2259,7 @@ public class TETools : TEGroup
 	
 }
 
-// TE:Trees ==================================================================================
+// TE:Foliage ==================================================================================
 
  public class TETrees : TEGroup
 {
@@ -2279,7 +2279,7 @@ public class TETools : TEGroup
 	public static int tfRuleIndex = 0;
 	public static string[] tfRuleTypes = new string[4] {"None","Detail","Splat","Tree"};
 
-    public TETrees() : base("TE:Trees", "Generate trees for your terrains with a stack of 10 height/slope rules.") { }
+    public TETrees() : base("TE:Foliage", "Generate trees for your terrains with a stack of 10 height/slope rules.") { }
 
 	public override void sceneEvents(SceneView sceneview){}	
 	protected override void OnInit()
@@ -2342,7 +2342,7 @@ public class TETools : TEGroup
 					EditorGUILayout.MinMaxSlider(ref teTreeRuleParams[teTreeRuleIndex,2],ref teTreeRuleParams[teTreeRuleIndex,3],0.0f,90.0f,GUILayout.MinWidth(40));
 					GUILayout.Label (teTreeRuleParams[teTreeRuleIndex,3].ToString("N2"), GUILayout.Width(40));
 				GUILayout.EndHorizontal();
-				teTreeRuleParams[teTreeRuleIndex,6] = TerrainEdge.teFloatSlider("Trees", teTreeRuleParams[teTreeRuleIndex,6], 1.0f, 2000f);
+				teTreeRuleParams[teTreeRuleIndex,6] = TerrainEdge.teFloatSlider("Foliage", teTreeRuleParams[teTreeRuleIndex,6], 1.0f, 2000f);
 				teTreeColor[teTreeRuleIndex] = teFunc.colorParse(teUI.colorPicker("Color:",teTreeColor[teTreeRuleIndex].ToString()));
 				teTreeLightmapColor[teTreeRuleIndex] = teFunc.colorParse(teUI.colorPicker("Lightmap:",teTreeLightmapColor[teTreeRuleIndex].ToString()));
 				teTreeWidth[teTreeRuleIndex] = TerrainEdge.teFloatSlider("Width", teTreeWidth[teTreeRuleIndex], 0.25f, 4.0f);
@@ -2394,15 +2394,15 @@ public class TETools : TEGroup
 			
 			GUILayout.BeginHorizontal();
 			if(GUILayout.Button("Selected")){
-				Undo.RegisterUndo(TerrainEdge.selectedObject.GetComponent<Terrain>().terrainData,"te:Generate Trees");
+				Undo.RegisterUndo(TerrainEdge.selectedObject.GetComponent<Terrain>().terrainData,"te:Generate Foliage");
 				Generate(TerrainEdge.selectedObject);
 			}
 			if(GUILayout.Button("Full Scene")){
-				Undo.RegisterUndo(FindObjectsOfType(typeof(Terrain)) as Terrain[],"te:Generate All Terrain Trees"); 
+				Undo.RegisterUndo(FindObjectsOfType(typeof(Terrain)) as Terrain[],"te:Generate All Terrain Foliage"); 
 				Terrain[] terrs = FindObjectsOfType(typeof(Terrain)) as Terrain[];
 				int terrIndex = 0;
 				foreach (Terrain terr in terrs) {
-					//EditorUtility.DisplayProgressBar("Generating Trees", "Generating "+terr.gameObject.name+" ("+(terrIndex+1)+" of "+terrs.Length+")....",(float)(terrIndex*(1.0f/terrs.Length)));
+					//EditorUtility.DisplayProgressBar("Generating Foliage", "Generating "+terr.gameObject.name+" ("+(terrIndex+1)+" of "+terrs.Length+")....",(float)(terrIndex*(1.0f/terrs.Length)));
 					Generate(terr.gameObject);
 					EditorUtility.ClearProgressBar();
 					terrIndex++;
@@ -2431,7 +2431,7 @@ public class TETools : TEGroup
 				int treecount = 0;
 				int attempts = 0;
 				while(treecount<(int)teTreeRuleParams[ruleId,6]&&attempts<2000){
-					EditorUtility.DisplayProgressBar("Generate Trees","Terrain GameObject:"+go.name+"\nTree Rule: "+ruleId.ToString()+"\nGenerating: "+treecount+" of "+(int)teTreeRuleParams[ruleId,6]+"...",(float)treecount*(1f/(float)teTreeRuleParams[ruleId,6]));
+					EditorUtility.DisplayProgressBar("Generate Foliage","Terrain GameObject:"+go.name+"\nTree Rule: "+ruleId.ToString()+"\nGenerating: "+treecount+" of "+(int)teTreeRuleParams[ruleId,6]+"...",(float)treecount*(1f/(float)teTreeRuleParams[ruleId,6]));
 				
 					float strengthmult = 1f;
 					int x=(int)((float)res*UnityEngine.Random.value);
@@ -2543,7 +2543,7 @@ public class TETools : TEGroup
 					}
 					break;
 			case "3":
-					// Trees -------------------------------------------------------
+					// Foliage -------------------------------------------------------
 					strengthmult = float.Parse("0"+tfRuleParams[treeRuleId,tfRuleId,2]);
 					pasteregionoffset = (int)float.Parse("0"+tfRuleParams[treeRuleId,tfRuleId,10]);
 					for(int tZ=z-pasteregionoffset;tZ<z+(pasteregionoffset+1);tZ++){

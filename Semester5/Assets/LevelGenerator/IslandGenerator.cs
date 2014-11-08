@@ -102,7 +102,7 @@ public class IslandGenerator : MonoBehaviour
                     int r = rnd.Next(0, 100);
                     if (r < treeDensity)
                     {
-                        GameObject go = (GameObject)GameObject.Instantiate(DataBaseHandler.DataBase.Trees[0]);
+                        GameObject go = (GameObject)GameObject.Instantiate(DataBaseHandler.DataBase.Foliage[0]);
                         go.transform.position = new Vector3(y * 2, ThisTerain.terrainData.GetHeight(y, x), x * 2);
                         go.transform.parent = this.transform;
                         

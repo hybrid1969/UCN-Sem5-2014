@@ -8,11 +8,12 @@ using LibNoise.Generator;
 
 public class Chunk : MonoBehaviour
 {
-    Vector2[,] WindDirection;
-    BiomeTypes[,] biomes;
-    float[,] RainShadow;
-    float[,] Temperature;
-    float[,] Humidity;
+    public Vector2[,] WindDirection;
+    public BiomeTypes[,] biomes;
+    public float[,] RainShadow;
+    public float[,] Temperature;
+    public float[,] Humidity;
+    public float[,] Heightmap;
     int MaxWindSpeed = 50;
 
     NoiseHelper noisehelper;
@@ -51,7 +52,6 @@ public class Chunk : MonoBehaviour
         noisehelper.SetBounds(new Rect(yOffset, yOffset + 1, xOffset, xOffset + 1));
         GenerateHeightmap(biomes);
         GenerateAlphamap(biomes);
-        ThisTerain.Flush();
     }
 
     void SetupTerainData()
@@ -69,7 +69,7 @@ public class Chunk : MonoBehaviour
     void GenerateHeightmap(BiomeTypes[,] biomes)
     {
         int resolution = ThisTerain.terrainData.heightmapResolution;
-        float[,] hmap = new float[resolution, resolution];
+        Heightmap = new float[resolution, resolution];
         List <LibNoise.ModuleBase> modules = new List<ModuleBase>();
         for (int i = 0; i < availblebiomes.Count; i++)
         {
@@ -87,17 +87,18 @@ public class Chunk : MonoBehaviour
             }
         }
         Noise2D heightMap = new Noise2D(resolution, resolution, modules[0]);
-        heightMap.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
+        heightMap.GeneratePlanar(yOffset, yOffset + 1.0f, xOffset, xOffset + 1.0f);
 
         for (int y = 0; y < resolution; y++)
         {
             for (int x = 0; x < resolution; x++)
             {
-                hmap[x, y] = (((heightMap[x, y]) * 0.5f) + 0.5f);// (float)((FlatNoiseMap[x, y] * 0.5f) + 0.5f);
+                Heightmap[x, y] = (((heightMap[x, y]) * 0.5f) + 0.5f);// (float)((FlatNoiseMap[x, y] * 0.5f) + 0.5f);
             }
         }
 
-        ThisTerain.terrainData.SetHeights(0, 0, hmap);
+        ThisTerain.terrainData.SetHeights(0, 0, Heightmap);
+        ThisTerain.Flush();
     }
 
     void GenerateTemperature()
@@ -107,7 +108,7 @@ public class Chunk : MonoBehaviour
 
     void GenerateWind()
     {
-        Noise2D WindMap = new Noise2D((DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), (DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), new Perlin(0.125, 2, 0.5, 10, 0, QualityMode.High));
+        Noise2D WindMap = new Noise2D((DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), (DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), new Perlin(0.125, 2, 0.5, 10, DataBaseHandler.DataBase.Seed, QualityMode.High));
         WindMap.GeneratePlanar(yOffset - ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), (yOffset + 1) + ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), xOffset - ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), (xOffset + 1) + ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize));
 
         WindDirection = new Vector2[(DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), (DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2))];
@@ -186,11 +187,11 @@ public class Chunk : MonoBehaviour
         }
     }
 
-    void GeneraRainfall()
+    void GenerateRainShadow()
     {
         RainShadow = new float[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
 
-        Noise2D RainCalcMap = new Noise2D((DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), (DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), new Perlin(0.125, 2, 0.5, 10, 0, QualityMode.High));
+        Noise2D RainCalcMap = new Noise2D((DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), (DataBaseHandler.BiomeMapSize + (MaxWindSpeed * 2)), new Perlin(0.125, 2, 0.5, 10, DataBaseHandler.DataBase.Seed, QualityMode.High));
         RainCalcMap.GeneratePlanar(xOffset - ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), (xOffset + 1) + ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), yOffset - ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize), (yOffset + 1) + ((double)MaxWindSpeed / (double)DataBaseHandler.BiomeMapSize));
 
         for (int i = -MaxWindSpeed; i < RainCalcMap.Width - MaxWindSpeed; i++)
@@ -203,19 +204,17 @@ public class Chunk : MonoBehaviour
                 }
             }
         }
-
-        //Smoothen(ref RainShadow);
     }
 
     void GenerateBiomes()
     {
         int resolution = ThisTerain.terrainData.alphamapResolution;
 
-        Noise2D heightMap = new Noise2D(resolution, resolution, new Perlin(0.125, 2, 0.5, 10, 0, QualityMode.High));
-        heightMap.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
+        Noise2D heightMap = new Noise2D(resolution, resolution, new Perlin(0.125, 2, 0.5, 10, DataBaseHandler.DataBase.Seed, QualityMode.High));
+        heightMap.GeneratePlanar(yOffset, yOffset + 1.0f, xOffset, xOffset + 1.0f);
 
-        Noise2D rainfall = new Noise2D(resolution, resolution, new Perlin(0.125, 2, 0.5, 10, 4560, QualityMode.High));
-        rainfall.GeneratePlanar(yOffset, yOffset + 1, xOffset, xOffset + 1);
+        Noise2D rainfall = new Noise2D(resolution, resolution, new Perlin(0.125, 2, 0.5, 10, DataBaseHandler.DataBase.Seed, QualityMode.High));
+        rainfall.GeneratePlanar(yOffset, yOffset + 1.0f, xOffset, xOffset + 1.0f);
 
         Humidity = new float[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
         biomes = new BiomeTypes[ThisTerain.terrainData.alphamapResolution, ThisTerain.terrainData.alphamapResolution];
@@ -235,7 +234,8 @@ public class Chunk : MonoBehaviour
                 {
                     availblebiomes.Add(biomes[i, j]);
                 }
-			}
+            } //tmpNoiseMap.GeneratePlanar(xoffset, (xoffset) + (1f / resolution) * (resolution + 1), -yoffset, (-yoffset) + (1f / resolution) * (resolution + 1));
+
 		}
     }
 
@@ -255,7 +255,7 @@ public class Chunk : MonoBehaviour
         {
             if ((y0 >= 0 && y0 < RainShadow.GetLength(1)) && (x0 >= 0 && x0 < RainShadow.GetLength(0)))
             {
-                RainShadow[y0, x0] += 0.000004f;
+                RainShadow[y0, x0] = 1;
             }
             if ((x0 == x1) && (y0 == y1)) loop = false;
             int e2 = 2 * err;
@@ -317,5 +317,14 @@ public class Chunk : MonoBehaviour
             }
         }
         ThisTerain.terrainData.SetAlphamaps(0, 0, amap);
+        ThisTerain.Flush();
+    }
+
+    public void GenerateFoliage()
+    {
+        for (int i = 0; i < availblebiomes.Count; i++)
+        {
+            DataBaseHandler.DataBase.biomes.First(b => b.Type == availblebiomes[i]).Decorate(this);
+        }
     }
 }

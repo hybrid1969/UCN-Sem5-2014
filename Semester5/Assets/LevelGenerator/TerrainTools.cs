@@ -1,278 +1,373 @@
-using System;
 using UnityEngine;
-using System.Collections;
+using UnityEditor;
+using System.Collections.Generic;
 
-public static class TerrainTools
+enum Direction {Across, Down}
+
+internal class TerrainTools : ScriptableWizard
 {
-    static double[] smoothModTable = null;
-    static double[] smoothDYTable = null;
-    static bool memoizationTablesFilled = false;
+    private static int across;
+    private static int down;
+    private static int tWidth;
+    private static int tHeight;
+    private static Terrain[] terrains;
+    private static int stitchWidth = 32;
+    private static string message;
+    private static int terrainRes;
+    private static Texture2D lineTex;
+    private static int maxStitchWidth = 100;
+    private static bool playError = false;
+    private static int gridPixelHeight = 28;
+    private static int gridPixelWidth = 121;
+    private static int y = 84;
 
-    static Vector3 prevSize = new Vector3(0, 0, 0);
-    static int prevHeight = 0;
-    static int prevWidth = 0;
-    static int prevNumSamples = 0;
-
-    delegate float GetYMod(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY);
-
-    public static void StitchTerrains(Terrain terrain1, Terrain terrain2, int numSamples, int domTerrain)
+    [MenuItem("Terrain/StitchC#...")]
+    private static void CreateWizard()
     {
-        var dX = terrain2.transform.position.x - terrain1.transform.position.x;
-        var dZ = terrain2.transform.position.z - terrain1.transform.position.z;
-
-        var height = terrain1.terrainData.heightmapHeight;
-        var width = terrain1.terrainData.heightmapWidth;
-
-        if (height != terrain2.terrainData.heightmapHeight || width != terrain2.terrainData.heightmapWidth || terrain1.terrainData.size != terrain2.terrainData.size)
+        if (lineTex == null)
         {
+            across = down = tWidth = tHeight = 2;
+            stitchWidth = 10;
+            SetNumberOfTerrains();
+            lineTex = EditorGUIUtility.whiteTexture;
+        }
+        message = "";
+        playError = false;
+        ScriptableWizard.DisplayWizard("Stitch Terrains", typeof (TerrainTools));
+    }
+
+    private new void OnGUI()
+    {
+        GUILayout.BeginHorizontal(GUILayout.Width(220));
+        GUILayout.BeginVertical();
+        GUILayout.BeginHorizontal(GUILayout.Width(190));
+        GUILayout.Label("Number of terrains across:");
+        across = Mathf.Max(EditorGUILayout.IntField(across, GUILayout.Width(30)), 1);
+        GUILayout.EndHorizontal();
+        GUILayout.BeginHorizontal(GUILayout.Width(190));
+        GUILayout.Label("Number of terrains down:");
+        down = Mathf.Max(EditorGUILayout.IntField(down, GUILayout.Width(30)), 1);
+        GUILayout.EndHorizontal();
+        GUILayout.EndVertical();
+        GUILayout.BeginVertical();
+        GUILayout.Space(12);
+        if (GUILayout.Button("Apply"))
+        {
+            tWidth = across;
+            tHeight = down;
+            SetNumberOfTerrains();
+        }
+        GUILayout.EndVertical();
+        GUILayout.EndHorizontal();
+
+        GUILayout.Space(7);
+
+        GUILayout.BeginHorizontal();
+        GUILayout.Space(15);
+        if (GUILayout.Button("Autofill from scene", GUILayout.Width(gridPixelWidth*tWidth + 2)))
+        {
+            AutoFill();
+        }
+        GUILayout.EndHorizontal();
+        GUILayout.Space(9);
+
+        int counter = 0;
+        for (int h = 0; h < tHeight; h++)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(20);
+            for (int w = 0; w < tWidth; w++)
+            {
+                terrains[counter] =
+                    (Terrain)
+                        EditorGUILayout.ObjectField(terrains[counter++], typeof (Terrain), true, GUILayout.Width(112));
+                GUILayout.Space(5);
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Space(9);
+        }
+        DrawGrid(Color.black, 1, y);
+        DrawGrid(Color.white, 0, y);
+
+        GUI.Label(new Rect(2, y - 4, 20, 20), "Z");
+
+        GUI.Label(new Rect(gridPixelWidth*tWidth + 10, y + 2 + gridPixelHeight*tHeight, 20, 20), "X");
+        GUI.color = Color.black;
+        GUI.DrawTexture(new Rect(7, y + 12, 1, gridPixelHeight*tHeight - 2), lineTex);
+        GUI.DrawTexture(new Rect(7, y + 10 + gridPixelHeight*tHeight, gridPixelWidth*tWidth, 1), lineTex);
+        GUI.color = Color.white;
+
+        GUILayout.Space(15);
+
+        GUILayout.BeginHorizontal();
+        if (terrains[0] != null)
+        {
+            maxStitchWidth = terrains[0].terrainData.heightmapWidth/2;
+        }
+        GUILayout.Label("Stitch width: " + stitchWidth, GUILayout.Width(90));
+        stitchWidth = (int) GUILayout.HorizontalSlider((float) stitchWidth, 2, maxStitchWidth);
+        GUILayout.EndHorizontal();
+
+        GUILayout.Space(8);
+
+        GUILayout.Label(message);
+
+        GUILayout.Space(1);
+
+        GUILayout.BeginHorizontal();
+        GUILayout.Space(10);
+        if (GUILayout.Button("Clear"))
+        {
+            SetNumberOfTerrains();
+        }
+        if (GUILayout.Button("Stitch"))
+        {
+            StitchTerrains();
+        }
+        GUILayout.Space(10);
+        GUILayout.EndHorizontal();
+    }
+
+    public static void AutoFill()
+    {
+        Terrain[] sceneTerrains = FindObjectsOfType<Terrain>();
+        if (sceneTerrains.Length == 0)
+        {
+            message = "No terrains found";
             return;
         }
 
-        if (height != prevHeight || width != prevWidth || terrain1.terrainData.size != prevSize || numSamples != prevNumSamples)
+        List<float> xPositions = new List<float>();
+        List<float> zPositions = new List<float>();
+        Vector3 tPosition = sceneTerrains[0].transform.position;
+        xPositions.Add(tPosition.x);
+        zPositions.Add(tPosition.z);
+        for (int i = 0; i < sceneTerrains.Length; i++)
         {
-            prevHeight = height;
-            prevWidth = width;
-            prevSize = terrain1.terrainData.size;
-            prevNumSamples = numSamples;
-
-            memoizationTablesFilled = false;
-            smoothModTable = new double[height];
-            smoothDYTable = new double[numSamples];
+            tPosition = sceneTerrains[i].transform.position;
+            if (!ListContains(xPositions, tPosition.x))
+            {
+                xPositions.Add(tPosition.x);
+            }
+            if (!ListContains(zPositions, tPosition.z))
+            {
+                zPositions.Add(tPosition.z);
+            }
         }
-        
-        GetYMod getYMod;
-        if (memoizationTablesFilled)
+        if (xPositions.Count*zPositions.Count != sceneTerrains.Length)
         {
-            getYMod = getYModMemoized;
+            message = "Unable to autofill. Terrains should line up closely in the form of a grid.";
+            return;
+        }
+
+        xPositions.Sort();
+        zPositions.Sort();
+        zPositions.Reverse();
+        across = tWidth = xPositions.Count;
+        down = tHeight = zPositions.Count;
+        terrains = new Terrain[tWidth*tHeight];
+        int count = 0;
+        for (int z = 0; z < zPositions.Count; z++)
+        {
+            for (int x = 0; x < xPositions.Count; x++)
+            {
+                for (int i = 0; i < sceneTerrains.Length; i++)
+                {
+                    tPosition = sceneTerrains[i].transform.position;
+                    if (Approx(tPosition.x, xPositions[x]) && Approx(tPosition.z, zPositions[z]))
+                    {
+                        terrains[count++] = sceneTerrains[i];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    public static bool ListContains(List<float> list, float pos)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (Approx(pos, list[i]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static bool Approx(float pos1, float pos2)
+    {
+        if (pos1 >= pos2 - 1.0f && pos1 <= pos2 + 1.0f)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void DrawGrid(Color color, int offset, int top)
+    {
+        GUI.color = color;
+        for (int i = 0; i < tHeight + 1; i++)
+        {
+            GUI.DrawTexture(new Rect(15 + offset, top + offset + gridPixelHeight*i, gridPixelWidth*tWidth, 1), lineTex);
+        }
+        for (int i = 0; i < tWidth + 1; i++)
+        {
+            GUI.DrawTexture(new Rect(15 + offset + gridPixelWidth*i, top + offset, 1, gridPixelHeight*tHeight + 1),
+                lineTex);
+        }
+    }
+
+    public static void SetNumberOfTerrains()
+    {
+        terrains = new Terrain[tWidth*tHeight];
+        message = "";
+    }
+
+    public static void StitchTerrains()
+    {
+        foreach (Terrain t in terrains)
+        {
+            if (t == null)
+            {
+                message = "All terrain slots must have a terrain assigned";
+                return;
+            }
+        }
+
+        terrainRes = terrains[0].terrainData.heightmapWidth;
+        if (terrains[0].terrainData.heightmapHeight != terrainRes)
+        {
+            message = "Heightmap width and height must be the same";
+            return;
+        }
+
+        foreach (Terrain t in terrains)
+        {
+            if (t.terrainData.heightmapWidth != terrainRes || t.terrainData.heightmapHeight != terrainRes)
+            {
+                message = "All heightmaps must be the same resolution";
+                return;
+            }
+        }
+
+        foreach (Terrain t in terrains)
+        {
+            Undo.RegisterUndo(t.terrainData, "Stitch");
+        }
+
+        stitchWidth = Mathf.Clamp(stitchWidth, 1, (terrainRes - 1)/2);
+        int counter = 0;
+        int total = tHeight*(tWidth - 1) + (tHeight - 1)*tWidth;
+
+        if (tWidth == 1 && tHeight == 1)
+        {
+            BlendData(terrains[0].terrainData, terrains[0].terrainData, Direction.Across, true);
+            BlendData(terrains[0].terrainData, terrains[0].terrainData, Direction.Down, true);
+            message = "Terrain has been made repeatable with itself";
         }
         else
         {
-            getYMod = getYModDynamic;
+            for (int h = 0; h < tHeight; h++)
+            {
+                for (int w = 0; w < tWidth - 1; w++)
+                {
+                    EditorUtility.DisplayProgressBar("Stitching...", "", Mathf.InverseLerp(0, total, ++counter));
+                    BlendData(terrains[h*tWidth + w].terrainData, terrains[h*tWidth + w + 1].terrainData,
+                        Direction.Across, false);
+                }
+            }
+            for (int h = 0; h < tHeight - 1; h++)
+            {
+                for (int w = 0; w < tWidth; w++)
+                {
+                    EditorUtility.DisplayProgressBar("Stitching...", "", Mathf.InverseLerp(0, total, ++counter));
+                    BlendData(terrains[h*tWidth + w].terrainData, terrains[(h + 1)*tWidth + w].terrainData,
+                        Direction.Down, false);
+                }
+            }
+            message = "Terrains stitched successfully";
         }
 
-        var heights1 = terrain1.terrainData.GetHeights(0, 0, width, height);
-        var heights2 = terrain2.terrainData.GetHeights(0, 0, width, height);
+        EditorUtility.ClearProgressBar();
+    }
 
-        if (Mathf.Abs(dX) > Mathf.Abs(dZ))
+    public static void BlendData(TerrainData terrain1, TerrainData terrain2, Direction thisDirection, bool singleTerrain)
+    {
+        float[,] heightmapData = terrain1.GetHeights(0, 0, terrainRes, terrainRes);
+        float[,] heightmapData2 = terrain2.GetHeights(0, 0, terrainRes, terrainRes);
+        int pos = terrainRes - 1;
+
+        if (thisDirection == Direction.Across)
         {
-            var xDir = terrain2.transform.position.x > terrain1.transform.position.x ? 1 : -1;
-
-            terrain2.transform.position = terrain1.transform.position;
-            terrain2.transform.position = new Vector3(terrain1.transform.position.x + terrain1.terrainData.size.x * xDir, terrain2.transform.position.y, terrain2.transform.position.z);
-
-            for (int z = 0; z < height; z++)
+            for (int i = 0; i < terrainRes; i++)
             {
-                var dY = 0.0;
-                if (xDir == 1)
+                for (int j = 1; j < stitchWidth; j++)
                 {
-                    dY = heights2[z, 0] - heights1[z, width - 1];
-                }
-                else
-                {
-                    dY = heights2[z, width - 1] - heights1[z, 0];
-                }
-
-                for (int i = 0; i < numSamples; i++)
-                {
-                    if (xDir == 1)
+                    float mix = Mathf.Lerp(heightmapData[i, pos - j], heightmapData2[i, j], 0.5f);
+                    if (j == 1)
                     {
-                        heights1[z, width - 1 - i] = heights1[z, width - 1 - i] + getYMod.Invoke(domTerrain, 1, dY, z, height, i, numSamples);
-                        heights2[z, i] = heights2[z, i] - getYMod.Invoke(domTerrain, 2, dY, z, height, i, numSamples);
+                        heightmapData[i, pos] = mix;
+                        heightmapData2[i, 0] = mix;
+                    }
+                    float t = Mathf.SmoothStep(0.0f, 1.0f, Mathf.InverseLerp(1, stitchWidth - 1, j));
+                    heightmapData[i, pos - j] = Mathf.Lerp(mix, heightmapData[i, pos - j], t);
+                    if (!singleTerrain)
+                    {
+                        heightmapData2[i, j] = Mathf.Lerp(mix, heightmapData2[i, j], t);
                     }
                     else
                     {
-                        heights1[z, i] = heights1[z, i] + getYMod.Invoke(domTerrain, 1, dY, z, height, i, numSamples);
-                        heights2[z, width - 1 - i] = heights2[z, width - 1 - i] - getYMod.Invoke(domTerrain, 2, dY, z, height, i, numSamples);
+                        heightmapData[i, j] = Mathf.Lerp(mix, heightmapData2[i, j], t);
                     }
+                }
+            }
+            if (singleTerrain)
+            {
+                for (int i = 0; i < terrainRes; i++)
+                {
+                    heightmapData[i, 0] = heightmapData[i, pos];
                 }
             }
         }
         else
         {
-            var zDir = terrain2.transform.position.z > terrain1.transform.position.z ? 1 : -1;
-
-            terrain2.transform.position = terrain1.transform.position;
-            terrain2.transform.position = new Vector3(terrain2.transform.position.x, terrain2.transform.position.y, terrain1.transform.position.z + terrain1.terrainData.size.z * zDir);
-
-            for (int x = 0; x < height; x++)
+            for (int i = 0; i < terrainRes; i++)
             {
-                var dY = 0.0;
-                if (zDir == 1)
+                for (int j = 1; j < stitchWidth; j++)
                 {
-                    dY = heights2[0, x] - heights1[width - 1, x];
-                }
-                else
-                {
-                    dY = heights2[width - 1, x] - heights1[0, x];
-                }
-                for (int i = 0; i < numSamples; i++)
-                {
-                    if (zDir == 1)
+                    float mix = Mathf.Lerp(heightmapData2[pos - j, i], heightmapData[j, i], 0.5f);
+                    if (j == 1)
                     {
-                        heights1[width - 1 - i, x] = heights1[width - 1 - i, x] + getYMod.Invoke(domTerrain, 1, dY, x, height, i, numSamples);
-                        heights2[i, x] = heights2[i, x] - getYMod.Invoke(domTerrain, 2, dY, x, height, i, numSamples);
+                        heightmapData2[pos, i] = mix;
+                        heightmapData[0, i] = mix;
+                    }
+                    float t = Mathf.SmoothStep(0.0f, 1.0f, Mathf.InverseLerp(1, stitchWidth - 1, j));
+                    if (!singleTerrain)
+                    {
+                        heightmapData2[pos - j, i] = Mathf.Lerp(mix, heightmapData2[pos - j, i], t);
                     }
                     else
                     {
-                        heights1[i, x] = heights1[i, x] + getYMod.Invoke(domTerrain, 1, dY, x, height, i, numSamples);
-                        heights2[width - 1 - i, x] = heights2[width - 1 - i, x] - getYMod.Invoke(domTerrain, 2, dY, x, height, i, numSamples);
+                        heightmapData[pos - j, i] = Mathf.Lerp(mix, heightmapData2[pos - j, i], t);
                     }
+                    heightmapData[j, i] = Mathf.Lerp(mix, heightmapData[j, i], t);
+                }
+            }
+            if (singleTerrain)
+            {
+                for (int i = 0; i < terrainRes; i++)
+                {
+                    heightmapData[pos, i] = heightmapData[0, i];
                 }
             }
         }
 
-        memoizationTablesFilled = true;
-
-        terrain1.terrainData.SetHeights(0, 0, heights1);
-        terrain1.Flush();
-        terrain2.terrainData.SetHeights(0, 0, heights2);
-        terrain2.Flush();
-    }
-
-    static float getYModDynamic(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY)
-    {
-        double yMod = dY / 2.0f;
-
-        if (terrainToMod == 1)
+        terrain1.SetHeights(0, 0, heightmapData);
+        if (!singleTerrain)
         {
-            if (domTerrain == 1)
-            {
-                yMod = dY * smoothMod(curCellX, maxCellsX);
-            }
-            else if (domTerrain == 2)
-            {
-                yMod = dY * (1.0f - smoothMod(curCellX, maxCellsX));
-            }
-        }
-        else if (terrainToMod == 2)
-        {
-            if (domTerrain == 1)
-            {
-                yMod = dY * (1.0f - smoothMod(curCellX, maxCellsX));
-            }
-            else if (domTerrain == 2)
-            {
-                yMod = dY * smoothMod(curCellX, maxCellsX);
-            }
-        }
-        else
-        {
-            Debug.LogError("terrainToMod must be either 1 or 2! (found: " + terrainToMod + ")");
-        }
-
-        return (float)(yMod * smoothDY(curCellY, maxCellsY));
-    }
-
-    static float getYModMemoized(int domTerrain, int terrainToMod, double dY, int curCellX, int maxCellsX, int curCellY, int maxCellsY)
-    {
-        double yMod = (double)dY / 2.0f;
-
-        if (terrainToMod == 1)
-        {
-            if (domTerrain == 1)
-            {
-                yMod = dY * smoothModTable[curCellX];
-            }
-            else if (domTerrain == 2)
-            {
-                yMod = dY * (1.0f - smoothModTable[curCellX]);
-            }
-        }
-        else if (terrainToMod == 2)
-        {
-            if (domTerrain == 1)
-            {
-                yMod = dY * (1.0f - smoothModTable[curCellX]);
-            }
-            else if (domTerrain == 2)
-            {
-                yMod = dY * smoothModTable[curCellX];
-            }
-        }
-        else
-        {
-            Debug.LogError("terrainToMod must be either 1 or 2! (found: " + terrainToMod + ")");
-        }
-
-        return (float)(yMod * smoothDYTable[curCellY]);
-    }
-
-    static double smoothDY(int current, double max)
-    {
-        double x = 1.0f - (double)current / max - 1;
-
-        var result = (236706659320000.0 * Math.Pow(x, 6) + 99115929736349168000.0 * Math.Pow(x, 5) - 247790818523389713100.0 * Math.Pow(x, 4)
-            + 80036273392876468420.0 * Math.Pow(x, 3) + 127736693875550215551.0 * Math.Pow(x, 2) - 713647159857677493.0 * x) / 58384668816317760000.0;
-        smoothDYTable[current] = result;
-        return result;
-    }
-
-    static double smoothMod(int current, double max)
-    {
-        double x = (double)current / max - 1;
-
-        var result = 1.0E-4 * ((1 * (x - 0.0) * (x - 0.05) * (x - 0.1) * (x - 0.5) * (x - 0.9) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / -1.4317846804800003E-5) +
-            0.0050 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.1) * (x - 0.5) * (x - 0.9) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / 3.074152499999999E-5) +
-            0.04 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.5) * (x - 0.9) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / -9.804240000000002E-5) +
-            0.5 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.1) * (x - 0.9) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / 0.0019448099999999997) +
-            0.04 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.1) * (x - 0.5) * (x - 0.95) * (x - 0.99) * (x - 1.0)) / -9.804239999999985E-5) +
-            0.0050 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.1) * (x - 0.5) * (x - 0.9) * (x - 0.99) * (x - 1.0)) / 3.0741525000000005E-5) +
-            1.0E-4 * ((1 * (x - 0.0) * (x - 0.01) * (x - 0.05) * (x - 0.1) * (x - 0.5) * (x - 0.9) * (x - 0.95) * (x - 1.0)) / -1.4317846804800018E-5);
-        smoothModTable[current] = result;
-        return result;
-    }
-
-    //public static float[, ,] TerrainTexture(int sizeX, int sizeY, int texturecount, BiomeMap biomap)
-    //{
-    //    float[, ,] textures = new float[sizeX, sizeY, texturecount];
-    //    for (int x = 0; x < sizeX; x++)
-    //    {
-    //        for (int y = 0; y < sizeY; y++)
-    //        {
-    //            textures[x, y, Mathf.RoundToInt(biomap.Biomes[x,y])] = 1;
-    //        }
-    //    }
-    //    return textures;
-    //}
-
-    public static Chunk GetGenerator(this Terrain ter)
-    {
-        if (ter.GetComponent<Chunk>() != null)
-            return ter.GetComponent<Chunk>();
-        else
-            return ter.gameObject.AddComponent<Chunk>();
-
-    }
-
-    public static void Fix(this Terrain cur, Terrain left, Terrain top, Terrain right, Terrain bottom)
-    {
-        int resolution = cur.terrainData.heightmapResolution;
-        float[,] newHeights = new float[resolution, resolution];
-        float[,] rightHeights = new float[resolution, resolution], bottomHeights = new float[resolution, resolution];
-
-        if (right != null)
-        {
-            rightHeights = right.terrainData.GetHeights(0, 0, resolution, resolution);
-        }
-        if (bottom != null)
-        {
-            bottomHeights = bottom.terrainData.GetHeights(0, 0, resolution, resolution);
-        }
-
-        if (right != null || bottom != null)
-        {
-
-            newHeights = cur.terrainData.GetHeights(0, 0, resolution, resolution);
-
-            for (int i = 0; i < resolution; i++)
-            {
-                if (right != null)
-                    newHeights[i, resolution - 1] = rightHeights[i, 0];
-
-                if (bottom != null)
-                    newHeights[0, i] = bottomHeights[resolution - 1, i];
-            }
-            cur.terrainData.SetHeights(0, 0, newHeights);
+            terrain2.SetHeights(0, 0, heightmapData2);
         }
     }
 }

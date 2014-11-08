@@ -60,7 +60,7 @@ public class NoiseHelper
     {
         if (TaigaNoise == null)
         {
-            TaigaNoise = new Select(0, 1, 1, StandartNoise, new Perlin(0.1, 4, 0.25, 2, DataBaseHandler.DataBase.Seed, QualityMode.High), new BiomeTranslator(Biomes, BiomeTypes.Tundra, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+            TaigaNoise = new Select(0, 1, 1, StandartNoise, new Perlin(0.5, 4, 0.25, 2, DataBaseHandler.DataBase.Seed, QualityMode.High), new BiomeTranslator(Biomes, BiomeTypes.Taiga, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return TaigaNoise;
     }
