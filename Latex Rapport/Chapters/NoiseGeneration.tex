@@ -92,7 +92,7 @@ Example usage of perlin noise, other than for what we already have mentioned, co
 
 
 \section{Voronoi Diagram}
-
+\label{VoronoiDiagram}
 Voronoi noise, or more commonly known as voronoi diagram, is a diagram built up by multiple voronoi cells. A Voronoi cell is a region containing all the points that are closer to a specific seed point than to any other seed point\cite{libnoiseVoronoi}. In \figref{fig:Voronoi} we see examples of two voronoi diagrams \figref{fig:2a} being a diagram with low displacement, meaning there will be fewer points, and \figref{fig:2b} have higher displacement and there by creating more seed points.
 
 There is multiple algorithms for generating voronoi diagrams, however one of the fastest is fortune's algorithm, made by Steven Fortune for his paper "A sweepline algorithm for Voronoi diagrams"\cite{VoronoiSweepLine}. In our case we use the libnoise libary for noise generation and libnoise does not state which algorithm they are using for voronoi diagrams.

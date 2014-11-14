@@ -130,6 +130,7 @@ internal class TerrainTools : ScriptableWizard
 
     public static void AutoFill()
     {
+        stitchWidth = 32;
         Terrain[] sceneTerrains = FindObjectsOfType<Terrain>();
         if (sceneTerrains.Length == 0)
         {

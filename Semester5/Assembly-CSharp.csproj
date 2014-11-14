@@ -107,6 +107,8 @@
      <Compile Include="Assets\Resources\LibNoise\Operator\WindexWarp.cs" />
      <Compile Include="Assets\Resources\LibNoise\Translator\BiomeTranslator.cs" />
      <Compile Include="Assets\Resources\LibNoise\Utils.cs" />
+     <Compile Include="Assets\ThreadEventHandler.cs" />
+     <Compile Include="Assets\ThreadedChunkLoader.cs" />
      <None Include="Assets\Standard Assets\TerrainStitcher\Changelog.txt" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\_BloomAndFlares\BlendOneOne.shader" />
      <None Include="Assets\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\NoiseEffectShaderRGB.shader" />

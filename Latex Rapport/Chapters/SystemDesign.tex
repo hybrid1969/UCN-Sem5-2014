@@ -5,11 +5,11 @@ To design a game we are faced with a lot of design choices. To make the right ch
 
 \section{Infinite World}
 \label{InfiniteWorld}
-When working with procedural content generation we often see two sorts of outcome, one of them being a single level generated within a boundary, or continuous generation which results in infinite worlds, by generating multiple levels next to each other, in such way that the generated outcome makes sense, and will look like a single huge world. We will focus on the infinite world aspect, and for this we will need some way of handle the world loading.
+When working with procedural content generation we often see two sorts of outcome, one of them being a single level generated within a boundary, or continuous generation which results in infinite worlds, by generating multiple levels next to each other, in such way that the generated outcome makes sense, and will look like a single huge world. We will focus on the infinite world aspect, and for this we will need some way of handling the world loading.
 
 As most computers have a limited amount of memory we cannot keep generating new content without also taking care of removing the old content. The way most other games handle this problem is to divide the world into chunks of a desirable size.
 
-Chunks are used in numerous ways, for instance as explain in\cite{Chucks} chunks can be used to divide 3D meshes of a terrain into smaller areas to increase the detail level of the terrain. We can adapt on this idea to create infinite world, as we can make a bunch of smaller terrains that linked together would look like a single huge terrain. As seen in Table \ref{table1} we illustrate a terrain divided into 9 chunks with the player standing in the middle at position 0;0.
+Chunks are used in numerous ways, for instance as explain in\cite{Chucks} chunks can be used to divide 3D meshes of a terrain into smaller areas to increase the detail level of the terrain. We can adapt on this idea to create infinite worlds, as we can make a bunch of smaller terrains that linked together would look like a single huge terrain. As seen in Table \ref{table1} we illustrate a terrain divided into 9 chunks with the player standing in the middle at position 0;0.
 
 \begin{table}[H]
 	\begin{center}
@@ -20,13 +20,13 @@ Chunks are used in numerous ways, for instance as explain in\cite{Chucks} chunks
 			-1;-1 & 0;-1 & 1;-1 & \\[30pt] \hline
 		\end{tabular}
 	\end{center}
-\caption{The table illustrate a division of a terrain into 9 chunks with the player in the highlighted center chunk.}
+\caption{The table illustrates a division of a terrain into 9 chunks with the player in the highlighted center chunk.}
 \label{table1}
 \end{table}
 
-As the player moves around we will need to create more content for the player to explorer, but also to remove old content so that the game does not use too much of the host computer's memory. Whenever the player move to either the top-, bottom-, right-, or left-most chunks a new column or row of chunks will be generated, but the column or row of chucks at the opposite side will also be removed.
+As the player moves around we will need to create more content for the player to explore, but also to remove old content so that the game does not use too much of the host computer's memory. Whenever the player moves to either the top-, bottom-, right-, or left-most chunks a new column or row of chunks will be generated, but the column or row of chucks at the opposite side will also be removed.
 
-We illustrate this process in Table \ref{table2} where the player moves from the chunk at 0;0 to 1;0. The game will then add a new column of chunk on the rightmost side, highlighted with green, and then save any changes made to the leftmost column, highlighted with red, and then removes them.
+We illustrate this process in Table \ref{table2} where the player moves from the chunk at 0;0 to 1;0. The game will then add a new column of chunks on the rightmost side, highlighted with green, and then save any changes made to the leftmost column, highlighted with red, and then removes them.
 
 \begin{table}[H]
 	\begin{center}
@@ -38,7 +38,7 @@ We illustrate this process in Table \ref{table2} where the player moves from the
 			-1;-1 & 0;-1 & 1;-1 & 2;-1 & \\[30pt] \hline
 		\end{tabular}
 	\end{center}
-\caption{The table illustrate the transition from one chunk to another, in this table from 0;0 to 1;0, and the new columns of chunks, highlighted with green, being added on the right side, and the column of old chunks, highlighted with red, being saved removed, as the player moves.}
+\caption{The table illustrate the transition from one chunk to another, in this table from 0;0 to 1;0, and the new columns of chunks, highlighted with green, being added on the right side, and the column of old chunks, highlighted with red, being saved and removed, as the player moves.}
 \label{table2}
 \end{table}
 
@@ -53,7 +53,7 @@ After this process we have a new column of chunks as the player have moved onto 
 			0;-1 & 1;-1 & 2;-1 & \\[30pt] \hline
 		\end{tabular}
 	\end{center}
-\caption{The table illustrate which chunks is loaded after the player have entered the chunk at 1;0.}
+\caption{The table illustrates which chunks is loaded after the player have entered the chunk at 1;0.}
 \label{table3}
 \end{table}
 
@@ -72,7 +72,7 @@ We have now demonstrated the usage of a basic chunk loader, however with only 9 
 			-2;-2 & \cellcolor[rgb]{0.80,1,1} -1;-2 & \cellcolor[rgb]{0.80,1,1} 0;-2 & \cellcolor[rgb]{0.80,1,1} 1;-2 & 2;-2 & \\[30pt]\hline
 		\end{tabular}
 	\end{center}
-\caption{The table illustrate a terrain with 25 chunks with the outer most chunk (highlighted with cyan) being the chunks that triggers new chunks to be loaded.}
+\caption{The table illustrates a terrain with 25 chunks with the outer most chunk (highlighted with cyan) being the chunks that triggers new chunks to be loaded.}
 \label{table4}
 \end{table}
 
@@ -83,7 +83,7 @@ It may be possible to increase the loaded area, as well as the number of new chu
 \label{WorldGeneration}
 As we have the terrain divided into chunks we ultimately only need to generate the world per chunk, this meaning we can work with one chunk at a time. To generate the terrain for each chunk we will use noise maps, however as we want smooth transition between the chunks to create the illusion of each chunk being a single huge continuous world, we also need the noise to be smooth and continuous. For this we will need to use coherent-noise. The difference between normal noise and coherent-noise is illustrated in \figref{fig:noise}.
 
-Libnoise already implements coherent-noise function in their noise generators, which give it the properties to always return the same output value, when ever the input value is the same. Besides that a coherent-noise function will produce a small change in the output value, if a small change in the input value have been made, and a large change in the output valve if the a large change have been made to the input value\cite{coherentnoise}.
+Libnoise already implements coherent-noise function in their noise generators, which gives it the properties to always return the same output value, when ever the input value is the same. Besides that a coherent-noise function will produce a small change in the output value, if a small change in the input value have been made, and a large change in the output valve if the a large change have been made to the input value\cite{coherentnoise}.
 
 \begin{figure}[H]
 		\includegraphics[width=0.49\linewidth]{img/noise}\includegraphics[width=0.49\linewidth]{img/coherentnoise}

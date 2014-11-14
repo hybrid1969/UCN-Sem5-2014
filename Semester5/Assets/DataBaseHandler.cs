@@ -189,7 +189,7 @@ public class DataBaseHandler : MonoBehaviour
             {
                 10,10,10,10,10,10,10,10,25,25,
             }));
-
+        
         SplatsPrototypes = new SplatPrototype[biomes.Count];
         for (int i = 0; i < biomes.Count; i ++)
         {

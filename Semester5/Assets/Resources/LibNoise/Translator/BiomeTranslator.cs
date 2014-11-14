@@ -37,9 +37,20 @@ namespace LibNoise.Operator
                     }
                 }
             }
-            
+
+            //int[,] weight = new int[,]
+            //{
+            //    {05, 04, 2,},
+            //    {12, 09, 4,},
+            //    {15, 12, 5,},
+            //    {28, 21, 15, 12}
+            //    {15, 12, 5,},
+            //    {12, 09, 4,},
+            //    {05, 04, 2,},
+            //};
+
             int smoothlenght = 16;
-            for (int q = 0; q < 8; q++)
+            for (int q = 0; q < 1; q++)
             {
                 double[,] temp = new double[DataBaseHandler.HeighMapSize, DataBaseHandler.HeighMapSize];
                 for (int i = 0; i < BiomeMap.GetLength(0); i++)
@@ -48,14 +59,15 @@ namespace LibNoise.Operator
                     {
                         double sum = 0;
                         double divider = 0;
-                        for (int k = -smoothlenght; k < smoothlenght; k++)
+                        for (int k = -smoothlenght; k <= smoothlenght; k++)
                         {
-                            for (int l = -smoothlenght; l < smoothlenght; l++)
+                            for (int l = -smoothlenght; l <= smoothlenght; l++)
                             {
                                 if (i + k >= 0 && j + l >= 0 && i + k < BiomeMap.GetLength(0) - 1 && j + l < BiomeMap.GetLength(1) - 1)
                                 {
-                                    sum += BiomeMap[i + k, j + l];
-                                    divider += 1.0;
+                                    int c = (int)((((Mathf.Cos(((float)Mathf.Abs(k) / 16.0f) * Mathf.PI) * 32) + 32) + ((Mathf.Cos(((float)Mathf.Abs(l) / 16.0f) * Mathf.PI) * 32) + 32)) / 2);
+                                    sum += BiomeMap[i + k, j + l] * c;
+                                    divider += c;
                                 }
                             }
                         }

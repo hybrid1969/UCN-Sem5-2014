@@ -141,8 +141,7 @@ namespace LibNoise.Generator
             {
                 v = 0.0;
             }
-            return v + (_displacement * Utils.ValueNoise3D((int) (Math.Floor(xc)), (int) (Math.Floor(yc)),
-                (int) (Math.Floor(zc)), 0));
+            return v + (_displacement * Utils.ValueNoise3D((int) (Math.Floor(xc)), (int) (Math.Floor(yc)), (int) (Math.Floor(zc)), 0));
         }
 
         #endregion
