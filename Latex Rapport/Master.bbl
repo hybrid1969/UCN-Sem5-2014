@@ -1,0 +1,123 @@
+\begin{thebibliography}{10}
+
+\bibitem{GameWorldSize}
+LA~Times.
+\newblock The largest video game worlds: A visual comparison, May, 6, 2010.
+\newblock http://www.themarysue.com/largest-video-game-worlds/.
+
+\bibitem{firstpcg}
+Guinness~World Records.
+\newblock First use of procedural generation in a video game.
+\newblock
+  http://www.guinnessworldrecords.com/records-6000/first-use-of-procedural-generation-in-a-video-game.
+
+\bibitem{Minecraft}
+Minecraft.
+\newblock https://minecraft.net.
+
+\bibitem{Terraria}
+Terraria.
+\newblock http://www.terraria.org/.
+
+\bibitem{Rust}
+Rust.
+\newblock http://playrust.com/.
+
+\bibitem{SpeedTree}
+Speedtree.
+\newblock http://www.speedtree.com/.
+
+\bibitem{Unity3D}
+Unity3d.
+\newblock http://unity3d.com/.
+
+\bibitem{Chucks}
+Thatcher Ulrich.
+\newblock Rendering massive terrains using chunked level of detail control,
+  April 14, 2012.
+\newblock http://tulrich.com/geekstuff/sig-notes.pdf.
+
+\bibitem{coherentnoise}
+libnoise.
+\newblock What is coherent noise?, April 14, 2012.
+\newblock http://libnoise.sourceforge.net/coherentnoise/index.html.
+
+\bibitem{KenPerlin}
+Ken Perlin.
+\newblock Ken perlin.
+\newblock http://mrl.nyu.edu/~perlin/.
+
+\bibitem{perlinnoise}
+Explanation of perlin noise., October 18, 2010.
+\newblock http://libnoise.sourceforge.net/coherentnoise/index.html.
+
+\bibitem{perlinnoise2}
+Hugo Elias.
+\newblock Perlin noise.
+\newblock http://freespace.virgin.net/hugo.elias/models/\\m\_perlin.htm.
+
+\bibitem{NoiseMachineMakingNoise}
+Ken Perlin.
+\newblock Making noise.
+\newblock http://www.noisemachine.com/talk1/.
+
+\bibitem{libnoisePerlin}
+libnoise.
+\newblock Perlin class reference.
+\newblock
+  http://libnoise.sourceforge.net/docs/\\classnoise\_1\_1module\_1\_1Perlin.html.
+
+\bibitem{libnoiseVoronoi}
+libnoise.
+\newblock Voronoi class reference.
+\newblock
+  http://libnoise.sourceforge.net/docs/\\classnoise\_1\_1module\_1\_1Voronoi.html.
+
+\bibitem{VoronoiSweepLine}
+Steven Fortune.
+\newblock A sweepline algorithm for voronoi diagrams, April 6, 1986.
+
+\bibitem{larmor-physx}
+Unknown~Author Name.
+\newblock larmor-physx.
+\newblock https://code.google.com/p/larmor-physx/.
+
+\bibitem{VoronoiDiagrams:Applications}
+Scot Drysdale.
+\newblock Voronoi diagrams: Applications from archaology to zoology, July 19,
+  1993.
+\newblock http://www.ics.uci.edu/~eppstein/gina/scot.drysdale.html.
+
+\bibitem{worley}
+Steven Worley.
+\newblock A cellular texture basis function, July 19, 1996.
+\newblock http://www.rhythmiccanvas.com/research/papers/worley.pdf.
+
+\bibitem{libnoiseBillow}
+libnoise.
+\newblock Billow class reference.
+\newblock
+  http://libnoise.sourceforge.net/docs/\\classnoise\_1\_1module\_1\_1Billow.html.
+
+\bibitem{libnoiseRidged}
+libnoise.
+\newblock Ridgedmulti class reference.
+\newblock
+  http://libnoise.sourceforge.net/docs/\\classnoise\_1\_1module\_1\_1RidgedMulti.html.
+
+\bibitem{WindMap}
+Experiments with procedural content~generation Dungeon~League.
+\newblock Wind direction, March 28, 2010.
+\newblock http://www.dungeonleague.com/2010/03/28/wind-direction/.
+
+\bibitem{RainShadowMap}
+Experiments with procedural content~generation Dungeon~League.
+\newblock Rain shadow, April 11, 2010.
+\newblock http://www.dungeonleague.com/2010/04/11/rain-shadow/.
+
+\bibitem{Bresenham}
+Colin Flanagan.
+\newblock The bresenham line-drawing algorithm.
+\newblock http://www.cs.helsinki.fi/group/goa/mallinnus/lines/bresenh.html.
+
+\end{thebibliography}
