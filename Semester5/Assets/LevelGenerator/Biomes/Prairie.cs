@@ -11,6 +11,6 @@ public class Prairie : Biome
 
     public override ModuleBase Generate(NoiseHelper noisehelper)
     {
-        return noisehelper.GetTundraNoise();
+        return noisehelper.GetPrairieNoise();
     }
 }

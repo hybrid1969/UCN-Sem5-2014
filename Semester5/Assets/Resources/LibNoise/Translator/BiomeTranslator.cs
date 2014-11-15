@@ -49,7 +49,7 @@ namespace LibNoise.Operator
             //    {05, 04, 2,},
             //};
 
-            int smoothlenght = 16;
+            int smoothlenght = 8;
             for (int q = 0; q < 1; q++)
             {
                 double[,] temp = new double[DataBaseHandler.HeighMapSize, DataBaseHandler.HeighMapSize];

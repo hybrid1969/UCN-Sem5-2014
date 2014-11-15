@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Security.Cryptography;
+using UnityEngine;
 using System.Collections;
 using LibNoise;
 using LibNoise.Generator;
@@ -12,8 +13,15 @@ public class NoiseHelper
 
     Noise2D FinalTerrainNoise;
 
+    Select ArcticNoise;
     Select TundraNoise;
     Select TaigaNoise;
+    Select BorealForestNoise;
+    Select ForestNoise;
+    Select PrairieNoise;
+    Select DesertNoise;
+    Select SavannaNoise;
+    Select RainForestNoise;
 
     Perlin StandartNoise = new Perlin(0.125, 2, 0.5, 2, DataBaseHandler.DataBase.Seed, QualityMode.High);
 
@@ -39,11 +47,27 @@ public class NoiseHelper
         Bounds = r;
     }
 
+    public ModuleBase GetArctic()
+    {
+        if (ArcticNoise == null)
+        {
+            ArcticNoise = new Select(0, 1, 1,new ScaleBias(0.25, 0, StandartNoise), 
+                new ScaleBias(0.25, 0, new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
+                new BiomeTranslator(Biomes, BiomeTypes.Arctic, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+        }
+        return ArcticNoise;
+    }
+
     public ModuleBase GetTundraNoise()
     {
         if (TundraNoise == null)
         {
-            TundraNoise = new Select(0, 1, 1, StandartNoise, new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), new BiomeTranslator(Biomes, BiomeTypes.Tundra, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+            TundraNoise = new Select(0, 1, 1, StandartNoise, 
+                new Select(0, 1, 1,
+                    new ScaleBias(0.75, -0.25, new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)),
+                    new ScaleBias(0.75, -0.25, new RidgedMultifractal(1, 0.5, 6, DataBaseHandler.DataBase.Seed, QualityMode.High)),
+                    new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
+                new BiomeTranslator(Biomes, BiomeTypes.Tundra, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return TundraNoise;
     }
@@ -52,9 +76,77 @@ public class NoiseHelper
     {
         if (TaigaNoise == null)
         {
-            TaigaNoise = new Select(0, 1, 1, StandartNoise, new Perlin(0.5, 4, 0.25, 2, DataBaseHandler.DataBase.Seed, QualityMode.High), new BiomeTranslator(Biomes, BiomeTypes.Taiga, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+            TaigaNoise = new Select(0, 1, 1, StandartNoise, 
+                new Perlin(0.5, 4, 0.25, 2, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new BiomeTranslator(Biomes, BiomeTypes.Taiga, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return TaigaNoise;
+    }
+
+    public ModuleBase GetBorealForestNoise()
+    {
+        if (BorealForestNoise == null)
+        {
+            BorealForestNoise = new Select(0, 1, 1, StandartNoise, 
+                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new BiomeTranslator(Biomes, BiomeTypes.BorealForest, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+        }
+        return BorealForestNoise;
+    }
+
+    public ModuleBase GetForestNoise()
+    {
+        if (ForestNoise == null)
+        {
+            ForestNoise = new Select(0, 1, 1, StandartNoise, 
+                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new BiomeTranslator(Biomes, BiomeTypes.Forest, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+        }
+        return ForestNoise;
+    }
+
+    public ModuleBase GetPrairieNoise()
+    {
+        if (PrairieNoise == null)
+        {
+            PrairieNoise = new Select(0, 1, 1, StandartNoise, 
+                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new BiomeTranslator(Biomes, BiomeTypes.Prairie, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+        }
+        return PrairieNoise;
+    }
+
+    public ModuleBase GetDesertNoise()
+    {
+        if (DesertNoise == null)
+        {
+            DesertNoise = new Select(0, 1, 1, StandartNoise, 
+                new ScaleBias(0.25, -0.125, new Perlin(2, 2, 0.5, 1, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
+                new BiomeTranslator(Biomes, BiomeTypes.Desert, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+        }
+        return DesertNoise;
+    }
+
+    public ModuleBase GetSavannaNoise()
+    {
+        if (SavannaNoise == null)
+        {
+            SavannaNoise = new Select(0, 1, 1, StandartNoise, 
+                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new BiomeTranslator(Biomes, BiomeTypes.Savanna, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+        }
+        return SavannaNoise;
+    }
+
+    public ModuleBase GetRainForestNoise()
+    {
+        if (RainForestNoise == null)
+        {
+            RainForestNoise = new Select(0, 1, 1, StandartNoise, 
+                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new BiomeTranslator(Biomes, BiomeTypes.RainForest, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
+        }
+        return RainForestNoise;
     }
 
     //public float GetLowFreqNoise(int x, int y)

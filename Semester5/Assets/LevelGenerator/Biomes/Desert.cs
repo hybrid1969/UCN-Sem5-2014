@@ -11,6 +11,6 @@ public class Desert : Biome
 
     public override ModuleBase Generate(NoiseHelper noisehelper)
     {
-        return noisehelper.GetTundraNoise();
+        return noisehelper.GetDesertNoise();
     }
 }

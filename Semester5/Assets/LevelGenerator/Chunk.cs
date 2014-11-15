@@ -59,7 +59,7 @@ public class Chunk : MonoBehaviour
         Terrain terrrain = this.gameObject.AddComponent<Terrain>();
         terrrain.terrainData = new TerrainData();
         terrrain.terrainData.heightmapResolution = DataBaseHandler.HeighMapSize;
-        terrrain.terrainData.size = new Vector3(DataBaseHandler.ChunkSize, DataBaseHandler.ChunkSize * 2, DataBaseHandler.ChunkSize);
+        terrrain.terrainData.size = new Vector3(DataBaseHandler.ChunkSize, DataBaseHandler.ChunkSize, DataBaseHandler.ChunkSize);
         TerrainCollider terrraincollider = this.gameObject.AddComponent<TerrainCollider>();
         terrraincollider.terrainData = terrrain.terrainData;
         terrrain.terrainData.alphamapResolution = DataBaseHandler.BiomeMapSize;
