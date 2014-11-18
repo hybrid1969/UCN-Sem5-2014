@@ -51,7 +51,7 @@ public class NoiseHelper
     {
         if (ArcticNoise == null)
         {
-            ArcticNoise = new Select(0, 1, 1,new ScaleBias(0.25, 0, StandartNoise), 
+            ArcticNoise = new Select(0, 1, 1, StandartNoise, 
                 new ScaleBias(0.25, 0, new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
                 new BiomeTranslator(Biomes, BiomeTypes.Arctic, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
@@ -63,10 +63,7 @@ public class NoiseHelper
         if (TundraNoise == null)
         {
             TundraNoise = new Select(0, 1, 1, StandartNoise, 
-                new Select(0, 1, 1,
-                    new ScaleBias(0.75, -0.25, new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)),
-                    new ScaleBias(0.75, -0.25, new RidgedMultifractal(1, 0.5, 6, DataBaseHandler.DataBase.Seed, QualityMode.High)),
-                    new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
+                new ScaleBias(0.75, 0.25, new Perlin(2, 4, 0.5, 6, DataBaseHandler.DataBase.Seed, QualityMode.High)),
                 new BiomeTranslator(Biomes, BiomeTypes.Tundra, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return TundraNoise;
@@ -77,7 +74,7 @@ public class NoiseHelper
         if (TaigaNoise == null)
         {
             TaigaNoise = new Select(0, 1, 1, StandartNoise, 
-                new Perlin(0.5, 4, 0.25, 2, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new ScaleBias(0.5, 0, new Perlin(1, 2, 0.25, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
                 new BiomeTranslator(Biomes, BiomeTypes.Taiga, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return TaigaNoise;
@@ -88,7 +85,7 @@ public class NoiseHelper
         if (BorealForestNoise == null)
         {
             BorealForestNoise = new Select(0, 1, 1, StandartNoise, 
-                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new ScaleBias(0.25, 0, new Perlin(0.25, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
                 new BiomeTranslator(Biomes, BiomeTypes.BorealForest, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return BorealForestNoise;
@@ -99,7 +96,7 @@ public class NoiseHelper
         if (ForestNoise == null)
         {
             ForestNoise = new Select(0, 1, 1, StandartNoise, 
-                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new ScaleBias(0.25, 0, new Perlin(0.25, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
                 new BiomeTranslator(Biomes, BiomeTypes.Forest, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return ForestNoise;
@@ -110,7 +107,7 @@ public class NoiseHelper
         if (PrairieNoise == null)
         {
             PrairieNoise = new Select(0, 1, 1, StandartNoise, 
-                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new ScaleBias(0.25, 0, new Perlin(0.25, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
                 new BiomeTranslator(Biomes, BiomeTypes.Prairie, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return PrairieNoise;
@@ -121,7 +118,7 @@ public class NoiseHelper
         if (DesertNoise == null)
         {
             DesertNoise = new Select(0, 1, 1, StandartNoise, 
-                new ScaleBias(0.25, -0.125, new Perlin(2, 2, 0.5, 1, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
+                new ScaleBias(0.125, -0.125, new Perlin(2, 2, 0.5, 1, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
                 new BiomeTranslator(Biomes, BiomeTypes.Desert, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return DesertNoise;
@@ -132,7 +129,7 @@ public class NoiseHelper
         if (SavannaNoise == null)
         {
             SavannaNoise = new Select(0, 1, 1, StandartNoise, 
-                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new ScaleBias(0.25, 0, new Perlin(0.5, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
                 new BiomeTranslator(Biomes, BiomeTypes.Savanna, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return SavannaNoise;
@@ -143,7 +140,7 @@ public class NoiseHelper
         if (RainForestNoise == null)
         {
             RainForestNoise = new Select(0, 1, 1, StandartNoise, 
-                new Perlin(1, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High), 
+                new ScaleBias(0.125, 0, new Perlin(0.25, 2, 0.5, 4, DataBaseHandler.DataBase.Seed, QualityMode.High)), 
                 new BiomeTranslator(Biomes, BiomeTypes.RainForest, Bounds.left, Bounds.top, Bounds.width, Bounds.height));
         }
         return RainForestNoise;
