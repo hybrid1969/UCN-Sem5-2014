@@ -53,25 +53,25 @@ public class ChunkLoader : MonoBehaviour
                     if (i != 0)
                     {
                         bt = Chunks[i - 1][j].GetComponent<Terrain>();
-                        TerrainStitcher.stitch(bt, Chunks[i][j].GetComponent<Terrain>(), 16, 0);
+                        //TerrainStitcher.stitch(bt, Chunks[i][j].GetComponent<Terrain>(), 16, 0);
                         //TerrainTools.BlendData(Chunks[i][j].GetComponent<Terrain>(), bt, TerrainTools.Direction.Z, 16);
                     }
                     if (i != LoadDistance - 1)
                     {
                         tt = Chunks[i + 1][j].GetComponent<Terrain>();
-                        TerrainStitcher.stitch(tt, Chunks[i][j].GetComponent<Terrain>(), 16, 0);
+                        //TerrainStitcher.stitch(tt, Chunks[i][j].GetComponent<Terrain>(), 16, 0);
                         //TerrainTools.BlendData(tt, Chunks[i][j].GetComponent<Terrain>(), TerrainTools.Direction.Z, 16);
                     }
                     if (j != 0)
                     {
                         lt = Chunks[i][j - 1].GetComponent<Terrain>();
-                        TerrainStitcher.stitch(lt, Chunks[i][j].GetComponent<Terrain>(), 16, 0);
+                        //TerrainStitcher.stitch(lt, Chunks[i][j].GetComponent<Terrain>(), 16, 0);
                         //TerrainTools.BlendData(lt, Chunks[i][j].GetComponent<Terrain>(), TerrainTools.Direction.X, 16);
                     }
                     if (j != LoadDistance - 1)
                     {
                         rt = Chunks[i][j + 1].GetComponent<Terrain>();
-                        TerrainStitcher.stitch(rt, Chunks[i][j].GetComponent<Terrain>(), 16, 0);
+                        //TerrainStitcher.stitch(rt, Chunks[i][j].GetComponent<Terrain>(), 16, 0);
                         //TerrainTools.BlendData(Chunks[i][j].GetComponent<Terrain>(), rt, TerrainTools.Direction.X, 16);
                     }
                 }

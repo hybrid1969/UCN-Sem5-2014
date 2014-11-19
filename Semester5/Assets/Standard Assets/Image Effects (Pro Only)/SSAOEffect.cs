@@ -2,8 +2,8 @@ using UnityEngine;
 
 [ExecuteInEditMode]
 [RequireComponent (typeof(Camera))]
-[AddComponentMenu("Image Effects/Rendering/Screen Space Ambient Occlusion")]
-public class SSAOEffect : MonoBehaviour
+[AddComponentMenu("Image Effects/Screen Space Ambient Occlusion")]
+public class SSAOEffectDepthCutoff : MonoBehaviour
 {
 	public enum SSAOSamples {
 		Low = 0,
@@ -18,6 +18,7 @@ public class SSAOEffect : MonoBehaviour
 	public int m_Downsampling = 2;
 	public float m_OcclusionAttenuation = 1.0f;
 	public float m_MinZ = 0.01f;
+	public float m_DepthCutoff = 50f;
 
 	public Shader m_SSAOShader;
 	private Material m_SSAOMaterial;
@@ -84,7 +85,6 @@ public class SSAOEffect : MonoBehaviour
 		}
 	}
 	
-	[ImageEffectOpaque]
 	void OnRenderImage (RenderTexture source, RenderTexture destination)
 	{
 		if (!m_Supported || !m_SSAOShader.isSupported) {
@@ -120,7 +120,8 @@ public class SSAOEffect : MonoBehaviour
 			m_MinZ,
 			1.0f / m_OcclusionAttenuation,
 			m_OcclusionIntensity));
-			
+		m_SSAOMaterial.SetFloat("_DepthCutoff", m_DepthCutoff);
+
 		bool doBlur = m_Blur > 0;
 		Graphics.Blit (doBlur ? null : source, rtAO, m_SSAOMaterial, (int)m_SampleCount);
 
